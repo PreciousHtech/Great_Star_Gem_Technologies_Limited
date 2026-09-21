@@ -1,7 +1,7 @@
 {
   "username": "admin",
-  "passwordHash": "$pbkdf2-sha512$100000$b5e9a6a6f35e90e787a4f0423a75c4df$6f09e16af64ee1cd537ebd337ebec1c4ccc68aa99dafb011dfd2735f8318ed089aa6d003c56b0299404b858fcde3505f5737b506f2fa28f31b899798634aca80",
-  "isCustomPassword": false,
+  "passwordHash": "$pbkdf2-sha512$100000$547036ec5298fa3d28290f9470d65242$3abd71e782b8feb44046c5db93be6584ca2bd794ffe5f7107c0a0d784f393474405911a73c4399fa4763798cc4cd351ed5119d205b7720ef1857d7a1f3a76915",
+  "isCustomPassword": true,
   "twoFactorEnabled": false,
   "twoFactorSecret": "DLYM7ID4GYDZ7GGYU4KNYIQUOLWVPDYN",
   "twoFactorBackupCodes": [
@@ -11,5 +11,5 @@
     "E983-8F4C",
     "F3AE-AD3D"
   ],
-  "updatedAt": "2026-09-21T07:57:37.351Z"
+  "updatedAt": "2026-09-21T16:41:18.441Z"
 }

@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { generateSecret, generateURI, verifySync } from 'otplib';
+import { authenticator } from 'otplib';
 import qrcode from 'qrcode';
 
 const ITERATIONS = 100000;
@@ -42,14 +42,10 @@ export async function generateTotpSetup(username: string = 'admin'): Promise<{
   qrCodeUrl: string;
   backupCodes: string[];
 }> {
-  const secret = generateSecret();
+  const secret = authenticator.generateSecret();
   const issuer = 'StarGem Technologies';
   const label = username || 'admin';
-  const uri = generateURI({
-    secret,
-    issuer,
-    label: `StarGem:${label}`,
-  });
+  const uri = authenticator.keyuri(`StarGem:${label}`, issuer, secret);
 
   const qrCodeUrl = await qrcode.toDataURL(uri, {
     errorCorrectionLevel: 'M',
@@ -79,22 +75,11 @@ export function verifyTotpToken(token: string, secret: string): boolean {
   const cleanToken = token.trim().replace(/\s+/g, '');
   if (cleanToken.length !== 6 || !/^\d{6}$/.test(cleanToken)) return false;
 
-  const currentEpoch = Math.floor(Date.now() / 1000);
-  for (let offset = -1; offset <= 1; offset++) {
-    try {
-      const res = verifySync({
-        token: cleanToken,
-        secret,
-        epoch: currentEpoch + offset * 30,
-      });
-      if (res && res.valid) {
-        return true;
-      }
-    } catch {
-      // Continue to next offset
-    }
+  try {
+    return authenticator.check(cleanToken, secret);
+  } catch {
+    return false;
   }
-  return false;
 }
 
 /**
