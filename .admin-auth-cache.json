@@ -1,0 +1,15 @@
+{
+  "username": "admin",
+  "passwordHash": "$pbkdf2-sha512$100000$b5e9a6a6f35e90e787a4f0423a75c4df$6f09e16af64ee1cd537ebd337ebec1c4ccc68aa99dafb011dfd2735f8318ed089aa6d003c56b0299404b858fcde3505f5737b506f2fa28f31b899798634aca80",
+  "isCustomPassword": false,
+  "twoFactorEnabled": false,
+  "twoFactorSecret": "DLYM7ID4GYDZ7GGYU4KNYIQUOLWVPDYN",
+  "twoFactorBackupCodes": [
+    "03EE-A631",
+    "668D-0314",
+    "AC74-E637",
+    "E983-8F4C",
+    "F3AE-AD3D"
+  ],
+  "updatedAt": "2026-09-21T07:57:37.351Z"
+}

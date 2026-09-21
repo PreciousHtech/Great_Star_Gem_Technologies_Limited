@@ -1,0 +1,74 @@
+// This is your Prisma schema file for Great Star Gem Enterprise Portal
+// Configured for PostgreSQL (Supabase / Cloud SQL)
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  title         String
+  category      String
+  categoryName  String
+  location      String?
+  year          String
+  client        String
+  image         String
+  summary       String   @db.Text
+  challenge     String?  @db.Text
+  solution      String?  @db.Text
+  impactMetrics String[]
+  liveUrl       String?
+  githubUrl     String?
+  status        String   @default("published")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+  @@index([status])
+}
+
+model Testimonial {
+  id              String   @id @default(cuid())
+  name            String
+  role            String
+  organization    String
+  country         String?
+  serviceCategory String?
+  avatar          String?
+  rating          Int      @default(5)
+  quote           String   @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Inquiry {
+  id              String   @id @default(cuid())
+  fullName        String
+  email           String
+  phone           String?
+  serviceCategory String
+  company         String?
+  message         String   @db.Text
+  status          String   @default("new")
+  createdAt       DateTime @default(now())
+}
+
+model AdminSetting {
+  id                    String   @id @default("default")
+  username              String   @default("admin")
+  email                 String   @default("admin@greatstargem.com")
+  password              String?  @default("admin123")
+  apiToken              String?
+  webhookSecret         String?
+  twoFactorEnabled      Boolean  @default(true)
+  sessionTimeoutMinutes Int      @default(30)
+  ipAllowlist           String?  @db.Text
+  publicApiEnabled      Boolean  @default(true)
+  updatedAt             DateTime @updatedAt
+}
