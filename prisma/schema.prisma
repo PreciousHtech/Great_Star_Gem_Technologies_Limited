@@ -66,9 +66,7 @@ model AdminSetting {
   password              String?  @default("admin123")
   apiToken              String?
   webhookSecret         String?
-  twoFactorEnabled      Boolean  @default(true)
   sessionTimeoutMinutes Int      @default(30)
-  ipAllowlist           String?  @db.Text
   publicApiEnabled      Boolean  @default(true)
   updatedAt             DateTime @updatedAt
 }

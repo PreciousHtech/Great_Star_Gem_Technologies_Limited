@@ -13,17 +13,7 @@ import {
   readAuthCache, 
   writeAuthCache
 } from './server/auth';
-import {
-  generateTotpSetup,
-  verifyTotpToken,
-  generateBackupCodes,
-  verifyAndConsumeBackupCode,
-} from './server/twoFactor';
-
 dotenv.config();
-
-// Temporary in-memory sessions for pending 2FA login challenges (5-minute expiration)
-const pending2FALoginSessions = new Map<string, { username: string; expiresAt: number }>();
 
 // Initial fallback values from environment variables if provided in .env
 function getEnvDefaultPassword(): string {
@@ -58,21 +48,18 @@ function getEnvAdminRecoveryKey(): string {
 const failedRecoveryAttempts = new Map<string, { count: number; lockedUntil: number }>();
 
 /**
- * Resolves the active administrator credentials and 2FA configuration.
+ * Resolves the active administrator credentials.
  * NEVER returns plain text password if customized; returns passwordHash.
  *
  * PRIORITY ORDER:
- * 1. PostgreSQL Database (`AdminSetting` table row with custom password and 2FA settings)
- * 2. Local Auth Cache (written when admin changes password or enables 2FA)
+ * 1. PostgreSQL Database (`AdminSetting` table row with custom password)
+ * 2. Local Auth Cache (written when admin changes password)
  * 3. Initial default from .env / process.env.ADMIN_PASSWORD (ONLY when admin has never changed password)
  */
 async function getActiveAdminCredentials(): Promise<{
   username: string;
   passwordHash: string;
   isCustomPassword: boolean;
-  twoFactorEnabled: boolean;
-  twoFactorSecret?: string;
-  twoFactorBackupCodes?: string[];
 }> {
   const pool = getPgPool();
   const prisma = getPrisma();
@@ -82,7 +69,7 @@ async function getActiveAdminCredentials(): Promise<{
   if (pool) {
     try {
       const res = await pool.query(
-        'SELECT username, password, "twoFactorEnabled", "twoFactorSecret", "twoFactorBackupCodes" FROM "AdminSetting" WHERE id = $1 LIMIT 1',
+        'SELECT username, password FROM "AdminSetting" WHERE id = $1 LIMIT 1',
         ['default']
       );
       if (res.rows.length > 0 && res.rows[0].password) {
@@ -96,8 +83,6 @@ async function getActiveAdminCredentials(): Promise<{
               username: res.rows[0].username || getEnvDefaultUsername(),
               passwordHash: hashed,
               isCustomPassword: true,
-              twoFactorEnabled: Boolean(res.rows[0].twoFactorEnabled),
-              twoFactorSecret: res.rows[0].twoFactorSecret || undefined,
             });
             storedPassword = hashed;
           } catch (upgradeErr) {
@@ -105,20 +90,10 @@ async function getActiveAdminCredentials(): Promise<{
           }
         }
 
-        let backupCodes: string[] | undefined;
-        try {
-          if (res.rows[0].twoFactorBackupCodes) {
-            backupCodes = JSON.parse(res.rows[0].twoFactorBackupCodes);
-          }
-        } catch {}
-
         return {
           username: res.rows[0].username || getEnvDefaultUsername(),
           passwordHash: storedPassword,
           isCustomPassword: true,
-          twoFactorEnabled: Boolean(res.rows[0].twoFactorEnabled),
-          twoFactorSecret: res.rows[0].twoFactorSecret || undefined,
-          twoFactorBackupCodes: backupCodes,
         };
       }
     } catch (err) {
@@ -143,20 +118,11 @@ async function getActiveAdminCredentials(): Promise<{
             console.warn('Prisma auto-hash migration warning:', upgradeErr);
           }
         }
-        let backupCodes: string[] | undefined;
-        try {
-          if (setting.twoFactorBackupCodes) {
-            backupCodes = JSON.parse(setting.twoFactorBackupCodes);
-          }
-        } catch {}
 
         return {
           username: setting.username || getEnvDefaultUsername(),
           passwordHash: storedPassword,
           isCustomPassword: true,
-          twoFactorEnabled: Boolean(setting.twoFactorEnabled),
-          twoFactorSecret: setting.twoFactorSecret || undefined,
-          twoFactorBackupCodes: backupCodes,
         };
       }
     } catch (err) {
@@ -164,15 +130,12 @@ async function getActiveAdminCredentials(): Promise<{
     }
   }
 
-  // 2. Check server-side local auth cache if password was changed or 2FA configured
+  // 2. Check server-side local auth cache if password was changed
   if (cache.passwordHash && cache.isCustomPassword) {
     return {
       username: cache.username || getEnvDefaultUsername(),
       passwordHash: cache.passwordHash,
       isCustomPassword: true,
-      twoFactorEnabled: Boolean(cache.twoFactorEnabled),
-      twoFactorSecret: cache.twoFactorSecret,
-      twoFactorBackupCodes: cache.twoFactorBackupCodes,
     };
   }
 
@@ -181,9 +144,6 @@ async function getActiveAdminCredentials(): Promise<{
     username: getEnvDefaultUsername(),
     passwordHash: getEnvDefaultPassword(),
     isCustomPassword: false,
-    twoFactorEnabled: Boolean(cache.twoFactorEnabled),
-    twoFactorSecret: cache.twoFactorSecret,
-    twoFactorBackupCodes: cache.twoFactorBackupCodes,
   };
 }
 
@@ -543,8 +503,6 @@ async function startServer() {
         username: activeCreds.username,
         isCustomPassword: activeCreds.isCustomPassword,
         hasEnvDefault: Boolean(process.env.ADMIN_PASSWORD),
-        twoFactorEnabled: activeCreds.twoFactorEnabled,
-        isTwoFactorConfigured: Boolean(activeCreds.twoFactorSecret),
       });
     } catch (err) {
       return res.json({
@@ -552,8 +510,6 @@ async function startServer() {
         username: getEnvDefaultUsername(),
         isCustomPassword: false,
         hasEnvDefault: false,
-        twoFactorEnabled: false,
-        isTwoFactorConfigured: false,
       });
     }
   });
@@ -592,6 +548,122 @@ async function startServer() {
     }
   });
 
+  // Admin Change Username Endpoint (requires current password verification)
+  app.post('/api/admin/change-username', async (req, res) => {
+    const { newUsername, currentPassword } = req.body;
+
+    // 1. Verify inputs
+    if (!newUsername || typeof newUsername !== 'string' || !newUsername.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'New username is required.',
+      });
+    }
+
+    const trimmedNewUsername = newUsername.trim();
+
+    if (trimmedNewUsername.length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username must be at least 3 characters long.',
+      });
+    }
+
+    if (!/^[a-zA-Z0-9_.-]+$/.test(trimmedNewUsername)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username can only contain alphanumeric characters, underscores, hyphens, and periods.',
+      });
+    }
+
+    if (!currentPassword || typeof currentPassword !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is required to verify administrator authorization.',
+      });
+    }
+
+    try {
+      const activeCreds = await getActiveAdminCredentials();
+
+      // 2. Verify current password
+      const isPasswordValid = await verifyPassword(currentPassword, activeCreds.passwordHash);
+      if (!isPasswordValid) {
+        return res.status(403).json({
+          success: false,
+          message: 'Current password verification failed. Please enter your valid current password to change username.',
+        });
+      }
+
+      if (trimmedNewUsername.toLowerCase() === activeCreds.username.toLowerCase()) {
+        return res.status(400).json({
+          success: false,
+          message: 'New username cannot be identical to your current username.',
+        });
+      }
+
+      // 3. Persist new username to PostgreSQL database
+      const pool = getPgPool();
+      const prisma = getPrisma();
+      let dbSaved = false;
+
+      if (pool) {
+        try {
+          await pool.query(
+            `INSERT INTO "AdminSetting" (id, username, password, "updatedAt")
+             VALUES ('default', $1, $2, NOW())
+             ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, "updatedAt" = NOW()`,
+            [trimmedNewUsername, activeCreds.passwordHash]
+          );
+          dbSaved = true;
+        } catch (poolErr) {
+          console.warn('PostgreSQL pool username update warning:', poolErr);
+        }
+      }
+
+      if (prisma && !dbSaved) {
+        try {
+          await prisma.adminSetting.upsert({
+            where: { id: 'default' },
+            update: {
+              username: trimmedNewUsername,
+              updatedAt: new Date(),
+            },
+            create: {
+              id: 'default',
+              username: trimmedNewUsername,
+              password: activeCreds.passwordHash,
+              updatedAt: new Date(),
+            },
+          });
+          dbSaved = true;
+        } catch (err) {
+          console.error('Failed to update admin username via Prisma:', err);
+        }
+      }
+
+      // 4. Update local cache
+      writeAuthCache({
+        username: trimmedNewUsername,
+        passwordHash: activeCreds.passwordHash,
+        isCustomPassword: activeCreds.isCustomPassword,
+        updatedAt: new Date().toISOString(),
+      });
+
+      return res.json({
+        success: true,
+        message: 'Admin username successfully updated and synchronized.',
+        username: trimmedNewUsername,
+      });
+    } catch (err) {
+      console.error('Change username error:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error updating administrator username.',
+      });
+    }
+  });
+
   app.post('/api/admin/login', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -603,26 +675,8 @@ async function startServer() {
     const isPassMatch = await verifyPassword(password, activeCreds.passwordHash);
 
     if (isUserMatch && isPassMatch) {
-      // If Two-Factor Authentication is active and configured, issue challenge
-      if (activeCreds.twoFactorEnabled && activeCreds.twoFactorSecret) {
-        const tempToken = crypto.randomBytes(32).toString('hex');
-        pending2FALoginSessions.set(tempToken, {
-          username: activeCreds.username,
-          expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
-        });
-
-        return res.json({
-          success: true,
-          require2FA: true,
-          tempToken,
-          username: activeCreds.username,
-          message: 'Two-Factor Authentication required. Enter the 6-digit code from your authenticator app.',
-        });
-      }
-
       return res.json({
         success: true,
-        require2FA: false,
         message: 'Authentication successful.',
         username: activeCreds.username,
         isCustomPassword: activeCreds.isCustomPassword,
@@ -633,257 +687,6 @@ async function startServer() {
         message: 'Invalid administrator credentials. Please check your username and password.',
       });
     }
-  });
-
-  // Verify 2FA Code or Emergency Backup Code during Login
-  app.post('/api/admin/2fa/verify-login', async (req, res) => {
-    const { tempToken, code, isBackupCode } = req.body;
-    if (!tempToken || !code) {
-      return res.status(400).json({
-        success: false,
-        message: 'Session token and 2FA verification code are required.',
-      });
-    }
-
-    const session = pending2FALoginSessions.get(tempToken);
-    if (!session || session.expiresAt < Date.now()) {
-      pending2FALoginSessions.delete(tempToken);
-      return res.status(401).json({
-        success: false,
-        sessionExpired: true,
-        message: 'Authentication session expired. Please sign in again with your password.',
-      });
-    }
-
-    const activeCreds = await getActiveAdminCredentials();
-    if (!activeCreds.twoFactorSecret) {
-      pending2FALoginSessions.delete(tempToken);
-      return res.json({ success: true, username: session.username });
-    }
-
-    if (isBackupCode) {
-      const { isValid, remainingCodes } = verifyAndConsumeBackupCode(
-        code,
-        activeCreds.twoFactorBackupCodes || []
-      );
-
-      if (isValid) {
-        pending2FALoginSessions.delete(tempToken);
-
-        // Update remaining backup codes in database and cache
-        const pool = getPgPool();
-        if (pool) {
-          try {
-            await pool.query(
-              'UPDATE "AdminSetting" SET "twoFactorBackupCodes" = $1, "updatedAt" = NOW() WHERE id = $2',
-              [JSON.stringify(remainingCodes), 'default']
-            );
-          } catch (e) {
-            console.error('Failed to update remaining backup codes in DB:', e);
-          }
-        }
-        writeAuthCache({
-          ...readAuthCache(),
-          twoFactorBackupCodes: remainingCodes,
-        });
-
-        return res.json({
-          success: true,
-          message: 'Emergency recovery code verified. Login successful.',
-          username: session.username,
-          remainingBackupCodes: remainingCodes.length,
-        });
-      } else {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid emergency backup code. Make sure each single-use code is entered accurately.',
-        });
-      }
-    }
-
-    // Standard 6-digit TOTP validation
-    const isValid = verifyTotpToken(code, activeCreds.twoFactorSecret);
-    if (isValid) {
-      pending2FALoginSessions.delete(tempToken);
-      return res.json({
-        success: true,
-        message: 'Two-Factor Authentication verified successfully.',
-        username: session.username,
-      });
-    } else {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid 6-digit authentication code. Please check your authenticator app and try again.',
-      });
-    }
-  });
-
-  // Get current 2FA Status & configuration info
-  app.get('/api/admin/2fa/status', async (req, res) => {
-    try {
-      const activeCreds = await getActiveAdminCredentials();
-      const hasSecret = Boolean(activeCreds.twoFactorSecret);
-      const isEnabled = Boolean(activeCreds.twoFactorEnabled && hasSecret);
-      const backupCount = activeCreds.twoFactorBackupCodes ? activeCreds.twoFactorBackupCodes.length : 0;
-
-      return res.json({
-        success: true,
-        twoFactorEnabled: isEnabled,
-        isConfigured: hasSecret,
-        backupCodesRemaining: backupCount,
-      });
-    } catch (err) {
-      console.error('2FA status error:', err);
-      return res.status(500).json({ success: false, message: 'Failed to retrieve 2FA status.' });
-    }
-  });
-
-  // Generate a new TOTP setup (Secret, URI, QR Code, and Backup Codes)
-  app.post('/api/admin/2fa/setup', async (req, res) => {
-    try {
-      const activeCreds = await getActiveAdminCredentials();
-      const setup = await generateTotpSetup(activeCreds.username || 'admin');
-
-      return res.json({
-        success: true,
-        secret: setup.secret,
-        uri: setup.uri,
-        qrCodeUrl: setup.qrCodeUrl,
-        backupCodes: setup.backupCodes,
-      });
-    } catch (err) {
-      console.error('2FA setup error:', err);
-      return res.status(500).json({ success: false, message: 'Failed to generate 2FA setup.' });
-    }
-  });
-
-  // Activate 2FA after verifying the first 6-digit code with the newly scanned secret
-  app.post('/api/admin/2fa/activate', async (req, res) => {
-    const { secret, code, backupCodes } = req.body;
-    if (!secret || !code) {
-      return res.status(400).json({
-        success: false,
-        message: 'Secret and verification code are required to activate 2FA.',
-      });
-    }
-
-    const isValid = verifyTotpToken(code, secret);
-    if (!isValid) {
-      return res.status(400).json({
-        success: false,
-        message: 'Verification code incorrect. Please enter the current 6-digit code shown in your authenticator app.',
-      });
-    }
-
-    const codes = Array.isArray(backupCodes) ? backupCodes : generateBackupCodes(6);
-    const pool = getPgPool();
-    let dbUpdated = false;
-
-    if (pool) {
-      try {
-        await pool.query(
-          `INSERT INTO "AdminSetting" (id, "twoFactorEnabled", "twoFactorSecret", "twoFactorBackupCodes", "updatedAt")
-           VALUES ('default', true, $1, $2, NOW())
-           ON CONFLICT (id) DO UPDATE SET "twoFactorEnabled" = true, "twoFactorSecret" = EXCLUDED."twoFactorSecret", "twoFactorBackupCodes" = EXCLUDED."twoFactorBackupCodes", "updatedAt" = NOW()`,
-          [secret, JSON.stringify(codes)]
-        );
-        dbUpdated = true;
-      } catch (poolErr) {
-        console.warn('PostgreSQL 2FA activation warning:', poolErr);
-      }
-    }
-
-    writeAuthCache({
-      ...readAuthCache(),
-      twoFactorEnabled: true,
-      twoFactorSecret: secret,
-      twoFactorBackupCodes: codes,
-    });
-
-    return res.json({
-      success: true,
-      message: 'Two-Factor Authentication (2FA) is now active! Your admin account is protected by TOTP.',
-      backupCodes: codes,
-      storedInDb: dbUpdated,
-    });
-  });
-
-  // Disable 2FA
-  app.post('/api/admin/2fa/disable', async (req, res) => {
-    const { currentPassword, code } = req.body;
-    const activeCreds = await getActiveAdminCredentials();
-
-    let authorized = false;
-    if (currentPassword) {
-      authorized = await verifyPassword(currentPassword, activeCreds.passwordHash);
-    } else if (code && activeCreds.twoFactorSecret) {
-      authorized = verifyTotpToken(code, activeCreds.twoFactorSecret);
-    }
-
-    if (!authorized) {
-      return res.status(403).json({
-        success: false,
-        message: 'Authorization failed. Please enter your valid current password or current 2FA code to disable 2FA.',
-      });
-    }
-
-    const pool = getPgPool();
-    if (pool) {
-      try {
-        await pool.query(
-          'UPDATE "AdminSetting" SET "twoFactorEnabled" = false, "twoFactorSecret" = NULL, "twoFactorBackupCodes" = NULL, "updatedAt" = NOW() WHERE id = $1',
-          ['default']
-        );
-      } catch (err) {
-        console.warn('PostgreSQL disable 2FA warning:', err);
-      }
-    }
-
-    writeAuthCache({
-      ...readAuthCache(),
-      twoFactorEnabled: false,
-      twoFactorSecret: undefined,
-      twoFactorBackupCodes: undefined,
-    });
-
-    return res.json({
-      success: true,
-      message: 'Two-Factor Authentication has been successfully disabled.',
-    });
-  });
-
-  // Regenerate emergency backup codes
-  app.post('/api/admin/2fa/regenerate-backup-codes', async (req, res) => {
-    const { currentPassword } = req.body;
-    const activeCreds = await getActiveAdminCredentials();
-
-    if (!currentPassword) {
-      return res.status(400).json({ success: false, message: 'Current password is required.' });
-    }
-
-    const isMatch = await verifyPassword(currentPassword, activeCreds.passwordHash);
-    if (!isMatch) {
-      return res.status(403).json({ success: false, message: 'Current password verification failed.' });
-    }
-
-    const newCodes = generateBackupCodes(6);
-    const pool = getPgPool();
-    if (pool) {
-      await pool.query(
-        'UPDATE "AdminSetting" SET "twoFactorBackupCodes" = $1, "updatedAt" = NOW() WHERE id = $2',
-        [JSON.stringify(newCodes), 'default']
-      );
-    }
-    writeAuthCache({
-      ...readAuthCache(),
-      twoFactorBackupCodes: newCodes,
-    });
-
-    return res.json({
-      success: true,
-      message: 'New emergency backup codes generated.',
-      backupCodes: newCodes,
-    });
   });
 
   app.post('/api/admin/change-password', async (req, res) => {
@@ -1016,9 +819,9 @@ async function startServer() {
     });
   });
 
-  // Emergency Admin Password & 2FA Recovery via Master Recovery Key
+  // Emergency Admin Password Recovery via Master Recovery Key
   app.post('/api/admin/recover-password', async (req, res) => {
-    const { recoveryKey, newPassword, confirmPassword, resetTwoFactor } = req.body;
+    const { recoveryKey, newPassword, confirmPassword } = req.body;
     const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
 
     // 1. Check rate limit
@@ -1114,38 +917,22 @@ async function startServer() {
     // 6. Hash new password with PBKDF2
     const hashedPassword = await hashPassword(newPassword);
 
-    // 7. Persist to PostgreSQL database (and optionally clear 2FA if requested)
+    // 7. Persist to PostgreSQL database
     const pool = getPgPool();
     const prisma = getPrisma();
     let dbSaved = false;
-    const shouldReset2FA = Boolean(resetTwoFactor);
 
     if (pool) {
       try {
-        if (shouldReset2FA) {
-          await pool.query(
-            `INSERT INTO "AdminSetting" (id, username, password, "twoFactorEnabled", "twoFactorSecret", "twoFactorBackupCodes", "updatedAt")
-             VALUES ('default', $1, $2, false, NULL, NULL, NOW())
-             ON CONFLICT (id) DO UPDATE SET 
-               username = EXCLUDED.username, 
-               password = EXCLUDED.password, 
-               "twoFactorEnabled" = false,
-               "twoFactorSecret" = NULL,
-               "twoFactorBackupCodes" = NULL,
-               "updatedAt" = NOW()`,
-            [targetUsername, hashedPassword]
-          );
-        } else {
-          await pool.query(
-            `INSERT INTO "AdminSetting" (id, username, password, "updatedAt")
-             VALUES ('default', $1, $2, NOW())
-             ON CONFLICT (id) DO UPDATE SET 
-               username = EXCLUDED.username, 
-               password = EXCLUDED.password, 
-               "updatedAt" = NOW()`,
-            [targetUsername, hashedPassword]
-          );
-        }
+        await pool.query(
+          `INSERT INTO "AdminSetting" (id, username, password, "updatedAt")
+           VALUES ('default', $1, $2, NOW())
+           ON CONFLICT (id) DO UPDATE SET 
+             username = EXCLUDED.username, 
+             password = EXCLUDED.password, 
+             "updatedAt" = NOW()`,
+          [targetUsername, hashedPassword]
+        );
         dbSaved = true;
       } catch (poolErr) {
         console.warn('PostgreSQL recovery update warning:', poolErr);
@@ -1159,11 +946,6 @@ async function startServer() {
           username: targetUsername,
           updatedAt: new Date(),
         };
-        if (shouldReset2FA) {
-          updateData.twoFactorEnabled = false;
-          updateData.twoFactorSecret = null;
-          updateData.twoFactorBackupCodes = null;
-        }
         await prisma.adminSetting.upsert({
           where: { id: 'default' },
           update: updateData,
@@ -1179,23 +961,17 @@ async function startServer() {
     }
 
     // 8. Update local cache
-    const currentCache = readAuthCache();
     writeAuthCache({
       username: targetUsername,
       passwordHash: hashedPassword,
       isCustomPassword: true,
-      twoFactorEnabled: shouldReset2FA ? false : Boolean(currentCache.twoFactorEnabled),
-      twoFactorSecret: shouldReset2FA ? undefined : currentCache.twoFactorSecret,
-      twoFactorBackupCodes: shouldReset2FA ? undefined : currentCache.twoFactorBackupCodes,
       updatedAt: new Date().toISOString(),
     });
 
     return res.json({
       success: true,
       username: targetUsername,
-      message: shouldReset2FA
-        ? 'Administrator password and Two-Factor Authentication have both been reset successfully. You may now log in.'
-        : 'Administrator password reset successfully. You may now log in with your new password.',
+      message: 'Administrator password reset successfully. You may now log in with your new password.',
     });
   });
 
