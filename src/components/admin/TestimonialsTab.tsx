@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { 
   Quote, Star, Edit3, Trash2, CheckCircle2, User, Building, 
-  Image as ImageIcon, RefreshCw, X, AlertCircle, Sparkles
+  Image as ImageIcon, RefreshCw, X, AlertCircle
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { TestimonialItem } from '../../types';
@@ -120,8 +120,7 @@ export default function TestimonialsTab() {
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-900">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-[11px] font-mono uppercase font-bold tracking-wider mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-[11px] font-mono uppercase font-bold tracking-wider mb-2">
               <span>DYNAMIC FEED</span>
             </div>
             <h2 className="text-2xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">

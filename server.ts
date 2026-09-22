@@ -11,31 +11,19 @@ import {
   verifyPassword, 
   isHashedPassword, 
   readAuthCache, 
-  writeAuthCache,
+  writeAuthCache
+} from './server/auth';
+import {
   generateTotpSetup,
   verifyTotpToken,
+  generateBackupCodes,
   verifyAndConsumeBackupCode,
-  generateBackupCodes
-} from './server/auth';
+} from './server/twoFactor';
 
 dotenv.config();
 
-// In-memory temporary sessions for pending 2FA login verifications
-interface Pending2FASession {
-  username: string;
-  expiresAt: number;
-}
-const pending2FALoginSessions = new Map<string, Pending2FASession>();
-
-// Cleanup expired sessions every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, session] of pending2FALoginSessions.entries()) {
-    if (session.expiresAt < now) {
-      pending2FALoginSessions.delete(key);
-    }
-  }
-}, 5 * 60 * 1000);
+// Temporary in-memory sessions for pending 2FA login challenges (5-minute expiration)
+const pending2FALoginSessions = new Map<string, { username: string; expiresAt: number }>();
 
 // Initial fallback values from environment variables if provided in .env
 function getEnvDefaultPassword(): string {
@@ -56,6 +44,18 @@ function getEnvDefaultUsername(): string {
     'admin'
   );
 }
+
+function getEnvAdminRecoveryKey(): string {
+  return (
+    process.env.ADMIN_RECOVERY_KEY ||
+    process.env.ADMIN_MASTER_KEY ||
+    process.env.ADMIN_RESET_KEY ||
+    'GreatStarGem-Recovery-Key-2026'
+  );
+}
+
+// In-memory rate limiting tracker for emergency recovery attempts (max 5 failed attempts per 15 min)
+const failedRecoveryAttempts = new Map<string, { count: number; lockedUntil: number }>();
 
 /**
  * Resolves the active administrator credentials and 2FA configuration.
@@ -1003,6 +1003,199 @@ async function startServer() {
         : 'Admin password successfully hashed and persisted securely.',
       username: targetUsername,
       isCustomPassword: true,
+    });
+  });
+
+  // Recovery Status endpoint - provides public info on whether recovery is configured
+  app.get('/api/admin/recovery-status', (req, res) => {
+    const isCustomRecoveryKey = Boolean(process.env.ADMIN_RECOVERY_KEY || process.env.ADMIN_MASTER_KEY || process.env.ADMIN_RESET_KEY);
+    res.json({
+      enabled: true,
+      hasCustomKey: isCustomRecoveryKey,
+      defaultKeyHint: isCustomRecoveryKey ? undefined : 'GreatStarGem-Recovery-Key-2026',
+    });
+  });
+
+  // Emergency Admin Password & 2FA Recovery via Master Recovery Key
+  app.post('/api/admin/recover-password', async (req, res) => {
+    const { recoveryKey, newPassword, confirmPassword, resetTwoFactor } = req.body;
+    const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+
+    // 1. Check rate limit
+    const attemptRecord = failedRecoveryAttempts.get(clientIp);
+    const now = Date.now();
+    if (attemptRecord && attemptRecord.lockedUntil > now) {
+      const waitMinutes = Math.ceil((attemptRecord.lockedUntil - now) / (60 * 1000));
+      return res.status(429).json({
+        success: false,
+        message: `Too many failed recovery attempts. Account recovery locked for ${waitMinutes} minute(s).`,
+      });
+    }
+
+    // 2. Validate input presence
+    if (!recoveryKey || typeof recoveryKey !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Master Recovery Key is required.',
+      });
+    }
+
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password and confirmation password are required.',
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password and confirm password do not match.',
+      });
+    }
+
+    // 3. Verify Master Recovery Key
+    const configuredMasterKey = getEnvAdminRecoveryKey();
+    const cleanKeyInput = recoveryKey.trim();
+    const cleanConfigured = configuredMasterKey.trim();
+
+    // Constant-time comparison
+    let isKeyValid = false;
+    try {
+      const bufA = Buffer.from(cleanKeyInput, 'utf8');
+      const bufB = Buffer.from(cleanConfigured, 'utf8');
+      if (bufA.length === bufB.length) {
+        isKeyValid = crypto.timingSafeEqual(bufA, bufB);
+      }
+    } catch {
+      isKeyValid = false;
+    }
+
+    if (!isKeyValid) {
+      const currentCount = (attemptRecord?.count || 0) + 1;
+      const MAX_ATTEMPTS = 5;
+      if (currentCount >= MAX_ATTEMPTS) {
+        failedRecoveryAttempts.set(clientIp, {
+          count: currentCount,
+          lockedUntil: now + 15 * 60 * 1000, // Lock for 15 minutes
+        });
+        return res.status(429).json({
+          success: false,
+          message: 'Too many failed recovery attempts. Recovery has been temporarily locked for 15 minutes.',
+        });
+      } else {
+        failedRecoveryAttempts.set(clientIp, {
+          count: currentCount,
+          lockedUntil: 0,
+        });
+        return res.status(401).json({
+          success: false,
+          message: `Invalid Master Recovery Key. (${MAX_ATTEMPTS - currentCount} attempt(s) remaining)`,
+        });
+      }
+    }
+
+    // 4. Reset failed attempts upon successful key verification
+    failedRecoveryAttempts.delete(clientIp);
+
+    // 5. Validate new password strength
+    const activeCreds = await getActiveAdminCredentials();
+    const targetUsername = activeCreds.username || getEnvDefaultUsername();
+
+    const validation = checkPasswordStrength(newPassword, targetUsername);
+    if (!validation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: validation.errorMessage || 'New password does not meet security requirements.',
+        requirements: validation.requirements,
+      });
+    }
+
+    // 6. Hash new password with PBKDF2
+    const hashedPassword = await hashPassword(newPassword);
+
+    // 7. Persist to PostgreSQL database (and optionally clear 2FA if requested)
+    const pool = getPgPool();
+    const prisma = getPrisma();
+    let dbSaved = false;
+    const shouldReset2FA = Boolean(resetTwoFactor);
+
+    if (pool) {
+      try {
+        if (shouldReset2FA) {
+          await pool.query(
+            `INSERT INTO "AdminSetting" (id, username, password, "twoFactorEnabled", "twoFactorSecret", "twoFactorBackupCodes", "updatedAt")
+             VALUES ('default', $1, $2, false, NULL, NULL, NOW())
+             ON CONFLICT (id) DO UPDATE SET 
+               username = EXCLUDED.username, 
+               password = EXCLUDED.password, 
+               "twoFactorEnabled" = false,
+               "twoFactorSecret" = NULL,
+               "twoFactorBackupCodes" = NULL,
+               "updatedAt" = NOW()`,
+            [targetUsername, hashedPassword]
+          );
+        } else {
+          await pool.query(
+            `INSERT INTO "AdminSetting" (id, username, password, "updatedAt")
+             VALUES ('default', $1, $2, NOW())
+             ON CONFLICT (id) DO UPDATE SET 
+               username = EXCLUDED.username, 
+               password = EXCLUDED.password, 
+               "updatedAt" = NOW()`,
+            [targetUsername, hashedPassword]
+          );
+        }
+        dbSaved = true;
+      } catch (poolErr) {
+        console.warn('PostgreSQL recovery update warning:', poolErr);
+      }
+    }
+
+    if (prisma && !dbSaved) {
+      try {
+        const updateData: Record<string, any> = {
+          password: hashedPassword,
+          username: targetUsername,
+          updatedAt: new Date(),
+        };
+        if (shouldReset2FA) {
+          updateData.twoFactorEnabled = false;
+          updateData.twoFactorSecret = null;
+          updateData.twoFactorBackupCodes = null;
+        }
+        await prisma.adminSetting.upsert({
+          where: { id: 'default' },
+          update: updateData,
+          create: {
+            id: 'default',
+            ...updateData,
+          },
+        });
+        dbSaved = true;
+      } catch (err) {
+        console.error('Failed to update admin password via Prisma in recovery:', err);
+      }
+    }
+
+    // 8. Update local cache
+    const currentCache = readAuthCache();
+    writeAuthCache({
+      username: targetUsername,
+      passwordHash: hashedPassword,
+      isCustomPassword: true,
+      twoFactorEnabled: shouldReset2FA ? false : Boolean(currentCache.twoFactorEnabled),
+      twoFactorSecret: shouldReset2FA ? undefined : currentCache.twoFactorSecret,
+      twoFactorBackupCodes: shouldReset2FA ? undefined : currentCache.twoFactorBackupCodes,
+      updatedAt: new Date().toISOString(),
+    });
+
+    return res.json({
+      success: true,
+      username: targetUsername,
+      message: shouldReset2FA
+        ? 'Administrator password and Two-Factor Authentication have both been reset successfully. You may now log in.'
+        : 'Administrator password reset successfully. You may now log in with your new password.',
     });
   });
 

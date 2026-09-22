@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, FormEvent } from 'react';
 import { 
   ShieldCheck, Key, Lock, Terminal, CheckCircle2, Copy, RefreshCw, 
   AlertTriangle, Eye, EyeOff, Save, Globe, Check, X, ShieldAlert,
-  Loader2, AlertCircle, QrCode, Smartphone, Download, KeyRound, ExternalLink, Shield
+  Loader2, AlertCircle, QrCode, Smartphone, Download, KeyRound, ExternalLink, Shield, LifeBuoy
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { checkPasswordStrength } from '../../utils/passwordValidator';
@@ -46,6 +46,13 @@ export default function SecuritySettingsTab() {
     backupCodesRemaining: 0,
   });
   const [isLoading2FAStatus, setIsLoading2FAStatus] = useState(false);
+
+  // Master Recovery Key status
+  const [recoveryStatus, setRecoveryStatus] = useState<{
+    enabled: boolean;
+    hasCustomKey: boolean;
+    defaultKeyHint?: string;
+  } | null>(null);
 
   // Setup Modal State
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
@@ -103,6 +110,14 @@ export default function SecuritySettingsTab() {
 
   useEffect(() => {
     fetch2FAStatus();
+    fetch('/api/admin/recovery-status')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.enabled) {
+          setRecoveryStatus(data);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Real-time password validation calculations
@@ -747,6 +762,32 @@ export default function SecuritySettingsTab() {
                 </button>
               </div>
             </form>
+
+            {/* Master Recovery Key Info Box */}
+            <div className="mt-6 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <LifeBuoy className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    Emergency Master Recovery Key
+                  </span>
+                </div>
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                  recoveryStatus?.hasCustomKey
+                    ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                    : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                }`}>
+                  {recoveryStatus?.hasCustomKey ? 'Custom Secret Set' : 'Default Key Active'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                If you ever forget your password or lose access to your authenticator app, click &quot;Reset with Recovery Key&quot; on the login page to bypass lockout and configure new credentials.
+              </p>
+              <div className="text-[11px] text-slate-400 bg-slate-950 px-3 py-2 rounded-xl border border-slate-800/80 font-mono flex items-center justify-between">
+                <span className="text-slate-400">Environment Variable:</span>
+                <span className="text-amber-300 font-semibold">ADMIN_RECOVERY_KEY</span>
+              </div>
+            </div>
           </div>
 
           <div className="mt-6 pt-4 border-t border-slate-900 text-[11px] text-slate-500 flex items-center justify-between">

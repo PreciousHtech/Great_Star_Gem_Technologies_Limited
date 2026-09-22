@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   FolderGit2, MessageSquareQuote, ShieldAlert, LogOut, ExternalLink, 
-  Sparkles, Radio, Layers, Database
+  Radio, Layers, Database
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import ProjectsTab from './ProjectsTab';

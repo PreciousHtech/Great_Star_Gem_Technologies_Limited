@@ -58,6 +58,12 @@ interface DataContextType {
   getActivePassword: () => string;
   verifyCurrentPassword: (currentPass: string) => Promise<{ valid: boolean; message?: string }>;
   changeAdminPassword: (currentPass: string, newPass: string, confirmPass: string) => Promise<{ success: boolean; message: string }>;
+  recoverAdminPassword: (
+    recoveryKey: string,
+    newPassword: string,
+    confirmPassword: string,
+    resetTwoFactor?: boolean
+  ) => Promise<{ success: boolean; message: string }>;
   currentRoute: 'public' | 'admin';
   navigateTo: (route: 'public' | 'admin') => void;
   dbStatus: DbStatus;
@@ -671,6 +677,68 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const recoverAdminPassword = async (
+    recoveryKey: string,
+    newPassword: string,
+    confirmPassword: string,
+    resetTwoFactor?: boolean
+  ): Promise<{ success: boolean; message: string }> => {
+    if (!recoveryKey.trim()) {
+      return { success: false, message: 'Master Recovery Key is required.' };
+    }
+    if (!newPassword || !confirmPassword) {
+      return { success: false, message: 'New password and confirmation fields cannot be empty.' };
+    }
+    if (newPassword !== confirmPassword) {
+      return { success: false, message: 'New password and confirmation password do not match.' };
+    }
+
+    const validation = checkPasswordStrength(newPassword, adminSettings.username || 'admin');
+    if (!validation.isValid) {
+      return {
+        success: false,
+        message: validation.errorMessage || 'New password does not meet security requirements.',
+      };
+    }
+
+    try {
+      const res = await fetch('/api/admin/recover-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recoveryKey: recoveryKey.trim(),
+          newPassword,
+          confirmPassword,
+          resetTwoFactor,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return {
+          success: false,
+          message: data.message || 'Failed to recover administrative credentials.',
+        };
+      }
+
+      // Purge any legacy stored password
+      try {
+        localStorage.removeItem(STORAGE_KEYS.PASSWORD);
+      } catch {}
+
+      return {
+        success: true,
+        message: data.message || 'Password successfully reset! You can now log in with your new password.',
+      };
+    } catch (err) {
+      console.error('Password recovery error:', err);
+      return {
+        success: false,
+        message: 'Could not communicate with authentication server to reset credentials.',
+      };
+    }
+  };
+
   const adminLogout = () => {
     setIsAdminLoggedIn(false);
     try {
@@ -714,6 +782,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         getActivePassword,
         verifyCurrentPassword,
         changeAdminPassword,
+        recoverAdminPassword,
         currentRoute,
         navigateTo,
         dbStatus,

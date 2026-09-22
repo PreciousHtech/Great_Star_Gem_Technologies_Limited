@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { 
-  Plus, Edit3, Trash2, ExternalLink, Code2, Globe, Sparkles, 
+  Plus, Edit3, Trash2, ExternalLink, Code2, Globe, 
   X, Check, AlertCircle, RefreshCw, Layers
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
