@@ -1,6 +1,0 @@
-{
-  "username": "admin",
-  "passwordHash": "$pbkdf2-sha512$100000$547036ec5298fa3d28290f9470d65242$3abd71e782b8feb44046c5db93be6584ca2bd794ffe5f7107c0a0d784f393474405911a73c4399fa4763798cc4cd351ed5119d205b7720ef1857d7a1f3a76915",
-  "isCustomPassword": true,
-  "updatedAt": "2026-09-21T16:41:18.441Z"
-}
