@@ -58,9 +58,7 @@ export interface AdminSettings {
   email: string;
   apiToken: string;
   webhookSecret: string;
-  twoFactorEnabled: boolean;
   sessionTimeoutMinutes: number;
-  ipAllowlist: string;
   publicApiEnabled: boolean;
   lastUpdated?: string;
 }

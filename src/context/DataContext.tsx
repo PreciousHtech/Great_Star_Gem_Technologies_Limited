@@ -21,9 +21,7 @@ const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
   email: 'admin@greatstargem.com',
   apiToken: 'gsg_live_sec_89f3b14092de718a22c4',
   webhookSecret: 'whsec_993417aa88de1b329419c',
-  twoFactorEnabled: true,
   sessionTimeoutMinutes: 30,
-  ipAllowlist: '197.210.0.0/16\n102.89.0.0/16\n127.0.0.1',
   publicApiEnabled: true,
   lastUpdated: new Date().toISOString()
 };
@@ -42,27 +40,21 @@ interface DataContextType {
   isAdminLoggedIn: boolean;
   adminLogin: (user: string, pass: string) => Promise<{
     success: boolean;
-    require2FA?: boolean;
-    tempToken?: string;
-    username?: string;
     message?: string;
   }>;
-  verify2FALogin: (tempToken: string, code: string, isBackupCode?: boolean) => Promise<{
-    success: boolean;
-    message?: string;
-    remainingBackupCodes?: number;
-  }>;
-  adminLogout: () => void;
+  adminLogout: (reason?: string) => void;
+  sessionTimeoutNotice: string | null;
+  clearSessionTimeoutNotice: () => void;
   adminSettings: AdminSettings;
   updateAdminSettings: (settings: Partial<AdminSettings>) => void;
   getActivePassword: () => string;
   verifyCurrentPassword: (currentPass: string) => Promise<{ valid: boolean; message?: string }>;
   changeAdminPassword: (currentPass: string, newPass: string, confirmPass: string) => Promise<{ success: boolean; message: string }>;
+  changeAdminUsername: (newUsername: string, currentPassword: string) => Promise<{ success: boolean; message: string }>;
   recoverAdminPassword: (
     recoveryKey: string,
     newPassword: string,
-    confirmPassword: string,
-    resetTwoFactor?: boolean
+    confirmPassword: string
   ) => Promise<{ success: boolean; message: string }>;
   currentRoute: 'public' | 'admin';
   navigateTo: (route: 'public' | 'admin') => void;
@@ -123,6 +115,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
     return DEFAULT_ADMIN_SETTINGS;
   });
+
+  // Session timeout banner notice
+  const [sessionTimeoutNotice, setSessionTimeoutNotice] = useState<string | null>(null);
+
+  const clearSessionTimeoutNotice = () => {
+    setSessionTimeoutNotice(null);
+  };
 
   // 5. DB Status State
   const [dbStatus, setDbStatus] = useState<DbStatus>({
@@ -480,9 +479,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     pass: string
   ): Promise<{
     success: boolean;
-    require2FA?: boolean;
-    tempToken?: string;
-    username?: string;
     message?: string;
   }> => {
     const trimmedUser = user.trim();
@@ -499,22 +495,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        if (data.require2FA) {
-          return {
-            success: true,
-            require2FA: true,
-            tempToken: data.tempToken,
-            username: data.username,
-            message: data.message,
-          };
-        }
         setIsAdminLoggedIn(true);
+        setSessionTimeoutNotice(null);
         try {
           localStorage.setItem(STORAGE_KEYS.AUTH, 'true');
           // Purge any plain-text password from localStorage for security
           localStorage.removeItem(STORAGE_KEYS.PASSWORD);
         } catch {}
-        return { success: true, require2FA: false };
+        return { success: true };
       } else {
         return {
           success: false,
@@ -531,53 +519,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     if (storedPass && trimmedUser.toLowerCase() === validUser.toLowerCase() && pass === storedPass) {
       setIsAdminLoggedIn(true);
+      setSessionTimeoutNotice(null);
       try {
         localStorage.setItem(STORAGE_KEYS.AUTH, 'true');
       } catch (e) {
         console.error(e);
       }
-      return { success: true, require2FA: false };
+      return { success: true };
     }
 
     return { success: false, message: 'Invalid administrator credentials. Please check your username and password.' };
-  };
-
-  const verify2FALogin = async (
-    tempToken: string,
-    code: string,
-    isBackupCode: boolean = false
-  ): Promise<{ success: boolean; message?: string; remainingBackupCodes?: number }> => {
-    if (!tempToken || !code) {
-      return { success: false, message: 'Session token and 2FA code are required.' };
-    }
-
-    try {
-      const res = await fetch('/api/admin/2fa/verify-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tempToken, code, isBackupCode }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setIsAdminLoggedIn(true);
-        try {
-          localStorage.setItem(STORAGE_KEYS.AUTH, 'true');
-          localStorage.removeItem(STORAGE_KEYS.PASSWORD);
-        } catch {}
-        return {
-          success: true,
-          message: data.message,
-          remainingBackupCodes: data.remainingBackupCodes,
-        };
-      }
-      return {
-        success: false,
-        message: data.message || 'Invalid verification code. Please check and try again.',
-      };
-    } catch (err) {
-      console.error('2FA verification network error:', err);
-      return { success: false, message: 'Could not connect to authentication server to verify 2FA.' };
-    }
   };
 
   const verifyCurrentPassword = async (
@@ -680,8 +631,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const recoverAdminPassword = async (
     recoveryKey: string,
     newPassword: string,
-    confirmPassword: string,
-    resetTwoFactor?: boolean
+    confirmPassword: string
   ): Promise<{ success: boolean; message: string }> => {
     if (!recoveryKey.trim()) {
       return { success: false, message: 'Master Recovery Key is required.' };
@@ -709,7 +659,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
           recoveryKey: recoveryKey.trim(),
           newPassword,
           confirmPassword,
-          resetTwoFactor,
         }),
       });
 
@@ -739,14 +688,121 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const adminLogout = () => {
+  const changeAdminUsername = async (
+    newUsername: string,
+    currentPass: string
+  ): Promise<{ success: boolean; message: string }> => {
+    const trimmed = newUsername.trim();
+    if (!trimmed) {
+      return { success: false, message: 'Username cannot be empty.' };
+    }
+    if (!currentPass) {
+      return { success: false, message: 'Current password is required to authorize username change.' };
+    }
+
+    try {
+      const res = await fetch('/api/admin/change-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newUsername: trimmed,
+          currentPassword: currentPass,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return {
+          success: false,
+          message: data.message || 'Failed to update administrator username.',
+        };
+      }
+
+      // Update local adminSettings with new username
+      setAdminSettings((prev) => {
+        const updated = { ...prev, username: trimmed, lastUpdated: new Date().toISOString() };
+        try {
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updated));
+        } catch (e) {
+          console.error(e);
+        }
+        return updated;
+      });
+
+      return {
+        success: true,
+        message: data.message || 'Administrator username updated successfully.',
+      };
+    } catch (err) {
+      console.error('Backend change username error:', err);
+      return {
+        success: false,
+        message: 'Could not communicate with authentication server to update username.',
+      };
+    }
+  };
+
+  const adminLogout = (reason?: string) => {
     setIsAdminLoggedIn(false);
+    if (reason) {
+      setSessionTimeoutNotice(reason);
+    }
     try {
       localStorage.setItem(STORAGE_KEYS.AUTH, 'false');
     } catch (e) {
       console.error(e);
     }
   };
+
+  // Active Session Inactivity Timeout Enforcer
+  useEffect(() => {
+    if (!isAdminLoggedIn) return;
+
+    // Timeout duration in minutes from adminSettings (default: 30 minutes, minimum: 1 minute)
+    const timeoutMinutes = Number(adminSettings.sessionTimeoutMinutes) || 30;
+    const timeoutMs = Math.max(1, timeoutMinutes) * 60 * 1000;
+
+    let timeoutId: NodeJS.Timeout;
+
+    const performTimeout = () => {
+      console.warn(`[Security] Session timed out after ${timeoutMinutes} minutes of inactivity.`);
+      adminLogout(`Your administrator session expired after ${timeoutMinutes} minutes of inactivity. Please log in again.`);
+    };
+
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(performTimeout, timeoutMs);
+    };
+
+    // User interaction events that signal active use
+    const activityEvents = [
+      'mousedown',
+      'mousemove',
+      'keydown',
+      'scroll',
+      'touchstart',
+      'click',
+    ];
+
+    const handleActivity = () => {
+      resetTimer();
+    };
+
+    // Initialize timer
+    resetTimer();
+
+    // Attach listeners
+    activityEvents.forEach((eventName) => {
+      window.addEventListener(eventName, handleActivity, { passive: true });
+    });
+
+    return () => {
+      clearTimeout(timeoutId);
+      activityEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, handleActivity);
+      });
+    };
+  }, [isAdminLoggedIn, adminSettings.sessionTimeoutMinutes]);
 
   const updateAdminSettings = (settings: Partial<AdminSettings>) => {
     setAdminSettings((prev) => {
@@ -775,13 +831,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
         resetTestimonials,
         isAdminLoggedIn,
         adminLogin,
-        verify2FALogin,
         adminLogout,
+        sessionTimeoutNotice,
+        clearSessionTimeoutNotice,
         adminSettings,
         updateAdminSettings,
         getActivePassword,
         verifyCurrentPassword,
         changeAdminPassword,
+        changeAdminUsername,
         recoverAdminPassword,
         currentRoute,
         navigateTo,

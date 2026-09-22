@@ -192,18 +192,12 @@ export async function ensureTablesExist(): Promise<{ success: boolean; message: 
         "password" TEXT,
         "apiToken" TEXT,
         "webhookSecret" TEXT,
-        "twoFactorEnabled" BOOLEAN NOT NULL DEFAULT false,
-        "twoFactorSecret" TEXT,
-        "twoFactorBackupCodes" TEXT,
         "sessionTimeoutMinutes" INTEGER NOT NULL DEFAULT 30,
-        "ipAllowlist" TEXT,
         "publicApiEnabled" BOOLEAN NOT NULL DEFAULT true,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
 
       ALTER TABLE "AdminSetting" ADD COLUMN IF NOT EXISTS "password" TEXT;
-      ALTER TABLE "AdminSetting" ADD COLUMN IF NOT EXISTS "twoFactorSecret" TEXT;
-      ALTER TABLE "AdminSetting" ADD COLUMN IF NOT EXISTS "twoFactorBackupCodes" TEXT;
     `);
 
     await client.query('COMMIT');
