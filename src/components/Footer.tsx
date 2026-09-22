@@ -35,8 +35,22 @@ export default function Footer() {
           {/* Brand Col */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-purple-500 to-purple-400 flex items-center justify-center shadow-md shadow-purple-600/30 text-white">
-                <Gem className="w-5 h-5 text-white" />
+              <div>
+                <div
+                  className="w-6 h-6 bg-purple-800"
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    WebkitMaskImage: "url(/GreatStarGem_Logo.png)",
+                    maskImage: "url(/GreatStarGem_Logo.png)",
+                    WebkitMaskSize: "contain",
+                    maskSize: "contain",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskRepeat: "no-repeat",
+                    WebkitMaskPosition: "center",
+                    maskPosition: "center",
+                  }}
+                />
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold tracking-tight text-white font-['Outfit',sans-serif]">
