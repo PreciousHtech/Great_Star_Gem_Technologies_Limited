@@ -149,23 +149,7 @@ export const SERVICES_DATA: ServiceItem[] = [
 ];
 
 export const PROJECTS_DATA: ProjectItem[] = [
-  {
-    id: 'proj-suxul',
-    title: 'Suxul E-Commerce & Marketplace Platform',
-    category: 'e-commerce',
-    categoryName: 'E-Commerce Development',
-    location: 'Global / Multi-Currency',
-    year: '2025',
-    client: 'Suxul Retail Group (RSU / Technoville)',
-    image: 'https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=800&q=80',
-    summary: 'High-performance headless e-commerce web application featuring real-time inventory synchronization, multi-vendor cart routing, and resilient checkout gateways.',
-    challenge: 'Engineering ultra-fast sub-second storefront load times with dynamic pricing across 14 currencies and automated merchant settlement.',
-    solution: 'Engineered a modern React/TypeScript micro-frontend with edge-cached GraphQL APIs, automated fraud scoring, and instant payment reconciliation.',
-    impactMetrics: ['99.99% Checkout Uptime', '3.2x Higher Conversion', 'Sub-400ms Edge Latency'],
-    liveUrl: 'https://suxul-storefront.demo',
-    githubUrl: 'https://github.com/developer/suxul-ecommerce',
-    status: 'published'
-  },
+  
   {
     id: 'proj-1',
     title: 'Global Energy Transition Summit',

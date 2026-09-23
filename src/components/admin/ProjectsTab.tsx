@@ -7,8 +7,6 @@ import { useData } from '../../context/DataContext';
 import { ProjectItem, ServiceCategory } from '../../types';
 
 const CATEGORY_OPTIONS: { id: ServiceCategory; name: string }[] = [
-  { id: 'e-commerce', name: 'E-Commerce Development' },
-  { id: 'web-dev', name: 'Web Applications & SaaS' },
   { id: 'ict', name: 'ICT Solutions & Cloud' },
   { id: 'conference', name: 'Global Conferences' },
   { id: 'solar', name: 'Solar Power Systems' },
@@ -127,7 +125,7 @@ export default function ProjectsTab() {
             <h2 className="text-xl font-bold text-white font-['Outfit',sans-serif]">
               Developer Portfolio Projects
             </h2>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/30">
               {projects.length} Published
             </span>
           </div>
@@ -150,7 +148,7 @@ export default function ProjectsTab() {
           <button
             type="button"
             onClick={openNewProjectModal}
-            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white shadow-lg shadow-purple-600/30 transition-all flex items-center gap-2 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 transition-all flex items-center gap-2 cursor-pointer"
             id="admin-add-project-btn"
           >
             <Plus className="w-4 h-4" />
@@ -161,8 +159,8 @@ export default function ProjectsTab() {
 
       {/* Toast Notification */}
       {statusMessage && (
-        <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center gap-2.5 text-xs text-purple-200 animate-in fade-in duration-200">
-          <Check className="w-4 h-4 text-purple-400 shrink-0" />
+        <div className="p-3.5 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center gap-2.5 text-xs text-teal-200 animate-in fade-in duration-200">
+          <Check className="w-4 h-4 text-teal-400 shrink-0" />
           <span>{statusMessage}</span>
         </div>
       )}
@@ -172,7 +170,7 @@ export default function ProjectsTab() {
         {projects.map((project) => (
           <div
             key={project.id}
-            className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden hover:border-purple-500/40 transition-all flex flex-col justify-between group shadow-lg"
+            className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden hover:border-teal-500/40 transition-all flex flex-col justify-between group shadow-lg"
             id={`admin-project-card-${project.id}`}
           >
             <div>
@@ -186,7 +184,7 @@ export default function ProjectsTab() {
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
                 
                 <div className="absolute top-3 left-3">
-                  <span className="px-2.5 py-1 rounded-full bg-slate-950/90 text-purple-300 border border-purple-500/30 text-[11px] font-semibold">
+                  <span className="px-2.5 py-1 rounded-full bg-slate-950/90 text-teal-300 border border-teal-500/30 text-[11px] font-semibold">
                     {project.categoryName || project.category}
                   </span>
                 </div>
@@ -219,7 +217,7 @@ export default function ProjectsTab() {
                     {project.impactMetrics.map((m, idx) => (
                       <span
                         key={idx}
-                        className="text-[10px] font-mono bg-purple-500/10 text-purple-300 px-2 py-0.5 rounded border border-purple-500/20"
+                        className="text-[10px] font-mono bg-teal-500/10 text-teal-300 px-2 py-0.5 rounded border border-teal-500/20"
                       >
                         {m}
                       </span>
@@ -263,7 +261,7 @@ export default function ProjectsTab() {
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 transition-colors flex items-center gap-1.5 cursor-pointer"
                   id={`admin-edit-project-${project.id}`}
                 >
-                  <Edit3 className="w-3.5 h-3.5 text-purple-400" />
+                  <Edit3 className="w-3.5 h-3.5 text-teal-400" />
                   <span>Edit</span>
                 </button>
 
@@ -328,8 +326,8 @@ export default function ProjectsTab() {
             </button>
 
             <div className="mb-6">
-              <span className="text-xs font-mono font-bold text-purple-400 uppercase tracking-wider">
-                {editingProjectId ? '[ EDIT PROJECT ]' : '[ PUBLISH SHOWCASE ]'}
+              <span className="text-xs font-mono font-bold text-teal-400 uppercase tracking-wider">
+                {editingProjectId ? 'EDIT PROJECT' : 'PUBLISH SHOWCASE'}
               </span>
               <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif] mt-1">
                 {editingProjectId ? 'Modify Project Details' : 'Upload New Developer Showcase Project'}
@@ -347,8 +345,8 @@ export default function ProjectsTab() {
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g., Suxul E-Commerce Platform"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                    placeholder="Project Name"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                   />
                 </div>
 
@@ -359,7 +357,7 @@ export default function ProjectsTab() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as ServiceCategory)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                   >
                     {CATEGORY_OPTIONS.map((opt) => (
                       <option key={opt.id} value={opt.id}>
@@ -380,7 +378,7 @@ export default function ProjectsTab() {
                     value={client}
                     onChange={(e) => setClient(e.target.value)}
                     placeholder="e.g., Technoville / RSU"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                   />
                 </div>
 
@@ -393,7 +391,7 @@ export default function ProjectsTab() {
                     value={image}
                     onChange={(e) => setImage(e.target.value)}
                     placeholder="https://images.unsplash.com/..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                   />
                 </div>
               </div>
@@ -408,7 +406,7 @@ export default function ProjectsTab() {
                   value={summary}
                   onChange={(e) => setSummary(e.target.value)}
                   placeholder="Describe technical architecture, modules implemented, deliverables, and performance results..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500 resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 resize-none"
                 />
               </div>
 
@@ -422,7 +420,7 @@ export default function ProjectsTab() {
                     value={metric1}
                     onChange={(e) => setMetric1(e.target.value)}
                     placeholder="e.g., 99.99% Uptime"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                   />
                 </div>
 
@@ -435,7 +433,7 @@ export default function ProjectsTab() {
                     value={metric2}
                     onChange={(e) => setMetric2(e.target.value)}
                     placeholder="e.g., Sub-400ms Latency"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                   />
                 </div>
               </div>
@@ -450,7 +448,7 @@ export default function ProjectsTab() {
                     value={liveUrl}
                     onChange={(e) => setLiveUrl(e.target.value)}
                     placeholder="https://example-demo.app"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                   />
                 </div>
 
@@ -463,7 +461,7 @@ export default function ProjectsTab() {
                     value={githubUrl}
                     onChange={(e) => setGithubUrl(e.target.value)}
                     placeholder="https://github.com/..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                   />
                 </div>
               </div>
@@ -478,7 +476,7 @@ export default function ProjectsTab() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white shadow-lg shadow-purple-600/30 cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 cursor-pointer"
                 >
                   {editingProjectId ? 'Save Changes' : '+ Publish Project Live'}
                 </button>

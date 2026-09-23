@@ -71,13 +71,13 @@ export default function DatabaseTab() {
       {/* Top Header Card */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-slate-900/80 border border-slate-800">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+          <div className="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
             <Database className="w-6 h-6" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2.5">
               <span>PostgreSQL & Supabase Engine</span>
-              <span className="text-xs px-2.5 py-0.5 rounded-full font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              <span className="text-xs px-2.5 py-0.5 rounded-full font-mono bg-teal-500/20 text-teal-300 border border-teal-500/30">
                 Prisma ORM v6
               </span>
             </h2>
@@ -103,7 +103,7 @@ export default function DatabaseTab() {
             type="button"
             onClick={handleSyncDb}
             disabled={syncing || !dbStatus.connected}
-            className="px-4 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-colors flex items-center gap-2 cursor-pointer shadow-lg shadow-purple-600/20 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-xl text-xs font-semibold bg-teal-600 hover:bg-teal-500 text-white transition-colors flex items-center gap-2 cursor-pointer shadow-lg shadow-teal-600/20 disabled:opacity-40 disabled:cursor-not-allowed"
             id="db-sync-btn"
           >
             <Layers className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
@@ -155,7 +155,7 @@ export default function DatabaseTab() {
         <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-mono uppercase text-slate-400">Response Latency</span>
-            <Server className="w-4 h-4 text-purple-400" />
+            <Server className="w-4 h-4 text-teal-400" />
           </div>
           <div className="mt-4">
             <div className="text-2xl font-bold font-mono text-white">
@@ -171,11 +171,11 @@ export default function DatabaseTab() {
         <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-mono uppercase text-slate-400">Synchronized Records</span>
-            <ShieldCheck className="w-4 h-4 text-purple-400" />
+            <ShieldCheck className="w-4 h-4 text-teal-400" />
           </div>
           <div className="mt-4">
             <div className="flex items-center gap-3 font-mono text-xs">
-              <span className="bg-slate-800 px-2 py-1 rounded text-purple-300">
+              <span className="bg-slate-800 px-2 py-1 rounded text-teal-300">
                 Projects: <strong>{dbStatus.counts?.projects ?? 0}</strong>
               </span>
               <span className="bg-slate-800 px-2 py-1 rounded text-emerald-300">
@@ -196,7 +196,7 @@ export default function DatabaseTab() {
       <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Terminal className="w-4 h-4 text-purple-400" />
+            <Terminal className="w-4 h-4 text-teal-400" />
             <span>Supabase Connection String Configuration</span>
           </h3>
           <span className="text-[11px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
@@ -209,7 +209,7 @@ export default function DatabaseTab() {
         </p>
 
         {/* Code Snippet */}
-        <div className="relative rounded-xl bg-slate-950 border border-slate-800 p-3 font-mono text-xs text-purple-300 flex items-center justify-between overflow-x-auto">
+        <div className="relative rounded-xl bg-slate-950 border border-slate-800 p-3 font-mono text-xs text-teal-300 flex items-center justify-between overflow-x-auto">
           <code className="text-slate-300 select-all pr-10">{sampleConnectionUri}</code>
           <button
             type="button"
@@ -243,7 +243,7 @@ export default function DatabaseTab() {
           <div>
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <span>Client Inquiries & Consultation Leads</span>
-              <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-purple-500/20 text-purple-300">
+              <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-teal-500/20 text-teal-300">
                 {inquiries.length} submissions
               </span>
             </h3>
@@ -286,7 +286,7 @@ export default function DatabaseTab() {
                       <div className="text-slate-200">{inq.email}</div>
                       {inq.phone && <div className="text-[11px] text-slate-400">{inq.phone}</div>}
                     </td>
-                    <td className="p-3 uppercase font-mono text-purple-400 whitespace-nowrap">
+                    <td className="p-3 uppercase font-mono text-teal-400 whitespace-nowrap">
                       {inq.serviceCategory}
                     </td>
                     <td className="p-3 text-slate-300 whitespace-nowrap">{inq.company || '—'}</td>

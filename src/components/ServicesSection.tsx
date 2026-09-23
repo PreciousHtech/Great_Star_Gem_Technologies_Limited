@@ -202,7 +202,7 @@ export default function ServicesSection({
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center px-3.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center px-3.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold uppercase tracking-wider mb-4">
             <span>Turnkey Expertise</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
@@ -223,7 +223,7 @@ export default function ServicesSection({
             return (
               <div
                 key={service.id}
-                className={`bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden hover:border-purple-500/40 transition-all duration-300 flex flex-col group ${
+                className={`bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden hover:border-teal-500/40 transition-all duration-300 flex flex-col group ${
                   isWide ? 'lg:col-span-1' : ''
                 }`}
                 id={`service-card-${service.id}`}
@@ -239,13 +239,13 @@ export default function ServicesSection({
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
                   
                   <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1 rounded-full bg-slate-950/85 backdrop-blur-sm text-purple-300 border border-purple-500/30 text-xs font-semibold uppercase tracking-wide">
+                    <span className="px-3 py-1 rounded-full bg-slate-950/85 backdrop-blur-sm text-teal-300 border border-teal-500/30 text-xs font-semibold uppercase tracking-wide">
                       {service.badge}
                     </span>
                   </div>
 
                   <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-600/30">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-600 to-teal-500 text-white flex items-center justify-center shadow-lg shadow-teal-600/30">
                       <IconComponent className="w-5 h-5" />
                     </div>
                     <span className="text-xs font-mono text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded border border-slate-800">
@@ -257,10 +257,10 @@ export default function ServicesSection({
                 {/* Card Body */}
                 <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
                   <div className="space-y-3">
-                    <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif] group-hover:text-purple-400 transition-colors">
+                    <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif] group-hover:text-teal-400 transition-colors">
                       {service.title}
                     </h3>
-                    <p className="text-xs font-medium text-purple-300/90">
+                    <p className="text-xs font-medium text-teal-300/90">
                       {service.tagline}
                     </p>
                     <p className="text-sm text-slate-400 leading-relaxed line-clamp-3">
@@ -271,14 +271,14 @@ export default function ServicesSection({
                     <div className="pt-2 space-y-2 border-t border-slate-800/80">
                       {service.features.slice(0, 3).map((feat, i) => (
                         <div key={i} className="flex items-center gap-2 text-xs text-slate-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
                           <span className="truncate">{feat}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Actions: Slate-button (explore) & Purple-button (book) */}
+                  {/* Actions: Slate-button (explore) & Teal-button (book) */}
                   <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between">
                     <button
                       type="button"
@@ -287,7 +287,7 @@ export default function ServicesSection({
                       id={`view-scope-${service.id}`}
                     >
                       <span>Explore Scope</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-purple-400" />
+                      <ArrowRight className="w-3.5 h-3.5 text-teal-400" />
                     </button>
 
                     <button
@@ -299,7 +299,7 @@ export default function ServicesSection({
                           contactSection.scrollIntoView({ behavior: 'smooth' });
                         }
                       }}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white shadow-md shadow-purple-600/25 transition-all cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-md shadow-teal-600/25 transition-all cursor-pointer"
                       id={`inquire-btn-${service.id}`}
                     >
                       Book Service
@@ -312,14 +312,14 @@ export default function ServicesSection({
         </div>
 
         {/* Interactive Scope & Estimation Planner */}
-        <div className="mt-20 bg-gradient-to-br from-slate-900 via-purple-950/25 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="mt-20 bg-gradient-to-br from-slate-900 via-teal-950/25 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             {/* Left Controls */}
             <div className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold uppercase">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold uppercase">
                 <Calculator className="w-3.5 h-3.5" />
                 <span>Project Scope & Feasibility Planner</span>
               </div>
@@ -344,7 +344,7 @@ export default function ServicesSection({
                       onClick={() => setCalcService(s.id)}
                       className={`p-2.5 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer truncate ${
                         calcService === s.id
-                          ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md shadow-purple-600/25'
+                          ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
                           : 'bg-slate-800/80 border border-slate-700 text-slate-300 hover:border-slate-600 hover:text-white'
                       }`}
                     >
@@ -367,7 +367,7 @@ export default function ServicesSection({
                       onClick={() => setCalcScale(scale)}
                       className={`py-2 px-3 rounded-xl text-center text-xs font-semibold capitalize transition-all cursor-pointer ${
                         calcScale === scale
-                          ? 'bg-slate-800 border-2 border-purple-500 text-purple-300 shadow-sm'
+                          ? 'bg-slate-800 border-2 border-teal-500 text-teal-300 shadow-sm'
                           : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
                       }`}
                     >
@@ -381,7 +381,7 @@ export default function ServicesSection({
             {/* Right Output Card */}
             <div className="lg:col-span-6 bg-slate-950/90 border border-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <span className="text-xs uppercase font-mono text-purple-400 font-semibold">
+                <span className="text-xs uppercase font-mono text-teal-400 font-semibold">
                   Feasibility Specification
                 </span>
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 capitalize border border-slate-700">
@@ -398,7 +398,7 @@ export default function ServicesSection({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
                   <div className="flex items-center gap-1.5 text-slate-400 mb-1">
-                    <Clock className="w-3.5 h-3.5 text-purple-400" />
+                    <Clock className="w-3.5 h-3.5 text-teal-400" />
                     <span>Estimated Timeline</span>
                   </div>
                   <div className="font-semibold text-white">{selectedEstimate.timeline}</div>
@@ -406,7 +406,7 @@ export default function ServicesSection({
 
                 <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
                   <div className="flex items-center gap-1.5 text-slate-400 mb-1">
-                    <Layers className="w-3.5 h-3.5 text-purple-400" />
+                    <Layers className="w-3.5 h-3.5 text-teal-400" />
                     <span>Resource Allocation</span>
                   </div>
                   <div className="font-semibold text-white">{selectedEstimate.team}</div>
@@ -420,7 +420,7 @@ export default function ServicesSection({
                 <div className="space-y-1.5">
                   {selectedEstimate.deliverables.map((item, i) => (
                     <div key={i} className="flex items-center gap-2 text-xs text-slate-300">
-                      <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0" />
                       <span>{item}</span>
                     </div>
                   ))}
@@ -431,7 +431,7 @@ export default function ServicesSection({
                 <button
                   type="button"
                   onClick={handleEstimateSelect}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white shadow-md shadow-purple-600/30 transition-all cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-md shadow-teal-600/30 transition-all cursor-pointer"
                   id="estimator-proceed-btn"
                 >
                   <span>Request Proposal with this Scope</span>

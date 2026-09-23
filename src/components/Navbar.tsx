@@ -73,25 +73,27 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
             id="navbar-brand-logo"
           >
             <div>
-              <div
-                className="w-6 h-6 bg-purple-800"
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  WebkitMaskImage: "url(/GreatStarGem_Logo.png)",
-                  maskImage: "url(/GreatStarGem_Logo.png)",
-                  WebkitMaskSize: "contain",
-                  maskSize: "contain",
-                  WebkitMaskRepeat: "no-repeat",
-                  maskRepeat: "no-repeat",
-                  WebkitMaskPosition: "center",
-                  maskPosition: "center",
-                }}
-              />
+              <div className="w-15 h-15 bg-black rounded-full flex items-center justify-center">
+                <div
+                    className="w-7 h-7 bg-teal-700"
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      WebkitMaskImage: "url(/GreatStarGem_Logo.png)",
+                      maskImage: "url(/GreatStarGem_Logo.png)",
+                      WebkitMaskSize: "contain",
+                      maskSize: "contain",
+                      WebkitMaskRepeat: "no-repeat",
+                      maskRepeat: "no-repeat",
+                      WebkitMaskPosition: "center",
+                      maskPosition: "center",
+                    }}
+                  />
+              </div>
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold tracking-tight text-white font-['Outfit',sans-serif]">
-                GreatStar<span className="text-purple-400">Gem</span>
+                GreatStar<span className="text-teal-500">Gem</span>
               </span>
               <span className="text-[10px] tracking-widest uppercase font-medium text-slate-400">
                 Conglomerate & Consulting
@@ -114,7 +116,7 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
                   }}
                   className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold shadow-md shadow-purple-600/30'
+                      ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white font-semibold shadow-md shadow-teal-600/30'
                       : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
                   }`}
                   id={`nav-link-${linkId}`}
@@ -133,7 +135,7 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
                 e.preventDefault();
                 handleNavClick('#contact');
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white shadow-md shadow-purple-600/30 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-md shadow-teal-600/30 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
               id="header-cta-button"
             >
               <span>Book Consultation</span>
@@ -173,7 +175,7 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
                   }}
                   className={`px-4 py-3 rounded-xl text-base font-medium transition-colors ${
                     isActive
-                      ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold'
+                      ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white font-semibold'
                       : 'text-slate-200 hover:bg-slate-900 hover:text-white'
                   }`}
                   id={`mobile-nav-link-${linkId}`}
@@ -189,7 +191,7 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
                   e.preventDefault();
                   handleNavClick('#contact');
                 }}
-                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-center font-semibold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white transition-colors shadow-md shadow-purple-600/25"
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-center font-semibold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white transition-colors shadow-md shadow-teal-600/25"
                 id="mobile-nav-cta"
               >
                 <PhoneCall className="w-4 h-4" />

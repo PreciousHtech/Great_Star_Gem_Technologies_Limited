@@ -58,9 +58,9 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col selection:bg-purple-600 selection:text-white">
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col selection:bg-teal-600 selection:text-white">
       {/* Background Ambience Glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[60rem] h-[25rem] bg-purple-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[60rem] h-[25rem] bg-teal-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
       {/* ADMIN HEADER */}
       <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
@@ -69,8 +69,8 @@ export default function AdminDashboard() {
           {/* Left: Branding & Status Indicator */}
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="flex items-center gap-2">
-              <span className="font-mono font-black text-sm sm:text-base text-purple-400 tracking-wider bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/25">
-                [ ADMIN CONSOLE ]
+              <span className="font-mono font-black text-sm sm:text-base text-teal-400 tracking-wider bg-teal-500/10 px-2.5 py-1 rounded-lg border border-teal-500/25">
+                 ADMIN PORTAL 
               </span>
             </div>
 
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${dbStatus.connected ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                 <span className={`relative inline-flex rounded-full h-2 w-2 ${dbStatus.connected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
               </span>
-              <span>{dbStatus.connected ? 'PostgreSQL Live' : 'Local Storage Mode'}</span>
+              <span>{dbStatus.connected ? 'PostgreSQL Live|Connected' : 'Local Storage Mode|Database not connected'}</span>
             </div>
           </div>
 
@@ -92,7 +92,7 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-2 sm:gap-4">
             <div className="text-right hidden md:block">
               <div className="text-xs font-semibold text-white">
-                Logged in as: <span className="text-purple-300 font-mono font-bold">{adminSettings.username || 'Admin'}</span>
+                Logged in as: <span className="text-teal-300 font-mono font-bold">{adminSettings.username || 'Admin'}</span>
               </div>
               <div className="text-[10px] text-slate-400">
                 Super Admin Access
@@ -145,7 +145,7 @@ export default function AdminDashboard() {
                   {isActive && (
                     <motion.div
                       layoutId="admin-active-tab-pill"
-                      className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-md shadow-purple-600/30"
+                      className="absolute inset-0 bg-gradient-to-r from-teal-600 to-teal-700 rounded-xl shadow-md shadow-teal-600/30"
                       transition={{ type: 'spring', stiffness: 450, damping: 35 }}
                     />
                   )}
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
 
       {/* Admin Footer */}
       <footer className="border-t border-slate-900 py-4 text-center text-xs text-slate-500 font-mono">
-        GreatStarGem Admin Console • Encrypted Dynamic CMS Engine
+        GreatStarGemTechnologies Admin Console • Encrypted Dynamic CMS Engine
       </footer>
     </div>
   );

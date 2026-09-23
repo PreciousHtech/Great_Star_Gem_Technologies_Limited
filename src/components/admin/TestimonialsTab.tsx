@@ -107,8 +107,8 @@ export default function TestimonialsTab() {
     <div className="space-y-10">
       {/* Toast Notification */}
       {statusMessage && (
-        <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center gap-2.5 text-xs text-purple-200 animate-in fade-in duration-200">
-          <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
+        <div className="p-3.5 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center gap-2.5 text-xs text-teal-200 animate-in fade-in duration-200">
+          <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0" />
           <span>{statusMessage}</span>
         </div>
       )}
@@ -116,11 +116,11 @@ export default function TestimonialsTab() {
       {/* TOP SECTION: UPLOAD NEW TESTIMONIAL Form */}
       <section className="bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden" id="upload-new-testimonial-section">
         {/* Glow accent */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-900">
           <div>
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-[11px] font-mono uppercase font-bold tracking-wider mb-2">
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-[11px] font-mono uppercase font-bold tracking-wider mb-2">
               <span>DYNAMIC FEED</span>
             </div>
             <h2 className="text-2xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
@@ -159,7 +159,7 @@ export default function TestimonialsTab() {
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
                   placeholder="e.g., Sir Richard Sodienye Pepple"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 transition-colors"
                   id="testimonial-client-name"
                 />
               </div>
@@ -180,7 +180,7 @@ export default function TestimonialsTab() {
                   value={roleCompany}
                   onChange={(e) => setRoleCompany(e.target.value)}
                   placeholder="e.g., Supervisor / Technoville Innovation"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 transition-colors"
                   id="testimonial-role-company"
                 />
               </div>
@@ -200,7 +200,7 @@ export default function TestimonialsTab() {
                   value={clientAvatar}
                   onChange={(e) => setClientAvatar(e.target.value)}
                   placeholder="https://images.unsplash.com/..."
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 transition-colors"
                   id="testimonial-avatar-url"
                 />
               </div>
@@ -218,7 +218,7 @@ export default function TestimonialsTab() {
               value={testimonialContent}
               onChange={(e) => setTestimonialContent(e.target.value)}
               placeholder="Enter verbatim client review, endorsement, or project appraisal (e.g., 'Great technical collaboration on web development projects...')"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500 transition-colors resize-none"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 transition-colors resize-none"
               id="testimonial-content-textarea"
             />
           </div>
@@ -227,7 +227,7 @@ export default function TestimonialsTab() {
           <div className="flex justify-end pt-2">
             <button
               type="submit"
-              className="py-3 px-6 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white shadow-lg shadow-purple-600/30 transition-all flex items-center gap-2 cursor-pointer"
+              className="py-3 px-6 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 transition-all flex items-center gap-2 cursor-pointer"
               id="upload-testimonial-live-btn"
             >
               <span>+ UPLOAD TESTIMONIAL LIVE</span>
@@ -243,7 +243,7 @@ export default function TestimonialsTab() {
             <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif]">
               ACTIVE TESTIMONIALS
             </h3>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-slate-800 text-purple-300 border border-slate-700">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-slate-800 text-teal-300 border border-slate-700">
               {testimonials.length} Endorsements Live
             </span>
           </div>
@@ -256,7 +256,7 @@ export default function TestimonialsTab() {
           {testimonials.map((item) => (
             <div
               key={item.id}
-              className="bg-slate-950 border border-slate-800/90 rounded-2xl p-6 hover:border-purple-500/40 transition-all shadow-md relative flex flex-col justify-between group"
+              className="bg-slate-950 border border-slate-800/90 rounded-2xl p-6 hover:border-teal-500/40 transition-all shadow-md relative flex flex-col justify-between group"
               id={`testimonial-card-${item.id}`}
             >
               <div className="space-y-4">
@@ -266,29 +266,29 @@ export default function TestimonialsTab() {
                     <img
                       src={item.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
                       alt={item.name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-purple-500/40 shadow-sm shrink-0"
+                      className="w-12 h-12 rounded-full object-cover border-2 border-teal-500/40 shadow-sm shrink-0"
                     />
                     <div>
                       <div className="text-sm font-bold text-white flex items-center gap-1.5 font-['Outfit',sans-serif]">
                         <span>{item.name}</span>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-purple-400" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
                       </div>
-                      <div className="text-xs text-purple-300 font-medium">
+                      <div className="text-xs text-teal-300 font-medium">
                         {item.role} {item.organization ? `• ${item.organization}` : ''}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-0.5 text-purple-400 shrink-0">
+                  <div className="flex items-center gap-0.5 text-teal-400 shrink-0">
                     {[...Array(item.rating || 5)].map((_, idx) => (
-                      <Star key={idx} className="w-3.5 h-3.5 fill-purple-400 text-purple-400" />
+                      <Star key={idx} className="w-3.5 h-3.5 fill-teal-400 text-teal-400" />
                     ))}
                   </div>
                 </div>
 
                 {/* Quote Text */}
                 <div className="relative pl-6 italic text-xs text-slate-300 leading-relaxed font-light">
-                  <Quote className="w-4 h-4 text-purple-500/30 absolute left-0 top-0 not-italic" />
+                  <Quote className="w-4 h-4 text-teal-500/30 absolute left-0 top-0 not-italic" />
                   "{item.quote}"
                 </div>
               </div>
@@ -306,7 +306,7 @@ export default function TestimonialsTab() {
                     className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 transition-colors flex items-center gap-1.5 cursor-pointer"
                     id={`edit-testimonial-btn-${item.id}`}
                   >
-                    <Edit3 className="w-3.5 h-3.5 text-purple-400" />
+                    <Edit3 className="w-3.5 h-3.5 text-teal-400" />
                     <span>Edit</span>
                   </button>
 
@@ -372,8 +372,8 @@ export default function TestimonialsTab() {
             </button>
 
             <div className="mb-6">
-              <span className="text-xs font-mono font-bold text-purple-400 uppercase tracking-wider">
-                [ EDIT TESTIMONIAL ]
+              <span className="text-xs font-mono font-bold text-teal-400 uppercase tracking-wider">
+                EDIT TESTIMONIAL
               </span>
               <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif] mt-1">
                 Update Client Review
@@ -390,7 +390,7 @@ export default function TestimonialsTab() {
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                 />
               </div>
 
@@ -403,7 +403,7 @@ export default function TestimonialsTab() {
                   required
                   value={editRoleCompany}
                   onChange={(e) => setEditRoleCompany(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                 />
               </div>
 
@@ -415,7 +415,7 @@ export default function TestimonialsTab() {
                   type="url"
                   value={editAvatar}
                   onChange={(e) => setEditAvatar(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                 />
               </div>
 
@@ -428,7 +428,7 @@ export default function TestimonialsTab() {
                   rows={3}
                   value={editQuote}
                   onChange={(e) => setEditQuote(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500 resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 resize-none"
                 />
               </div>
 
@@ -442,7 +442,7 @@ export default function TestimonialsTab() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white shadow-lg shadow-purple-600/30 cursor-pointer"
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 cursor-pointer"
                 >
                   Save Changes
                 </button>

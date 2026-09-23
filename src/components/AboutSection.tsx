@@ -8,14 +8,14 @@ export default function AboutSection() {
   return (
     <section id="about" className="py-24 sm:py-32 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-slate-100 relative overflow-hidden">
       {/* Background accents */}
-      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-purple-900/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-teal-900/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         
         {/* Section Header */}
         <div className="max-w-3xl">
-          <div className="inline-flex items-center px-3.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center px-3.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold uppercase tracking-wider mb-4">
             <span>About GreatStarGem</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight leading-tight">
@@ -35,7 +35,7 @@ export default function AboutSection() {
               onClick={() => setActiveTab('vision')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === 'vision'
-                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md shadow-purple-600/25'
+                  ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
                   : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700/80'
               }`}
               id="about-tab-vision"
@@ -49,7 +49,7 @@ export default function AboutSection() {
               onClick={() => setActiveTab('reach')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === 'reach'
-                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md shadow-purple-600/25'
+                  ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
                   : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700/80'
               }`}
               id="about-tab-reach"
@@ -63,7 +63,7 @@ export default function AboutSection() {
               onClick={() => setActiveTab('synergy')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === 'synergy'
-                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md shadow-purple-600/25'
+                  ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
                   : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700/80'
               }`}
               id="about-tab-synergy"
@@ -86,15 +86,15 @@ export default function AboutSection() {
                   </p>
                   <ul className="space-y-2.5 pt-2 text-sm text-slate-300">
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-teal-400 shrink-0" />
                       <span>Zero-compromise structural safety and international building code adherence</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-teal-400 shrink-0" />
                       <span>Accelerating clean energy transition with bankable Tier-1 solar EPC</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-teal-400 shrink-0" />
                       <span>Fostering global investments through high-impact summits and expositions</span>
                     </li>
                   </ul>
@@ -107,7 +107,7 @@ export default function AboutSection() {
                     loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-6">
-                    <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">
+                    <span className="text-xs font-semibold text-teal-300 uppercase tracking-wider">
                       Corporate Headquarters & Engineering Hub
                     </span>
                   </div>
@@ -143,7 +143,7 @@ export default function AboutSection() {
                     loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-6">
-                    <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">
+                    <span className="text-xs font-semibold text-teal-300 uppercase tracking-wider">
                       Diplomatic Protocol & International Cooperation
                     </span>
                   </div>
@@ -162,19 +162,19 @@ export default function AboutSection() {
                   </p>
                   <div className="space-y-3 pt-1 text-sm text-slate-300">
                     <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-purple-400 mt-2 shrink-0" />
+                      <div className="w-2 h-2 rounded-full bg-teal-400 mt-2 shrink-0" />
                       <p>
                         <strong className="text-white font-semibold">Real Estate + Solar:</strong> Our residential and commercial developments come pre-integrated with clean solar microgrids, eliminating reliance on unstable municipal power.
                       </p>
                     </div>
                     <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-purple-400 mt-2 shrink-0" />
+                      <div className="w-2 h-2 rounded-full bg-teal-400 mt-2 shrink-0" />
                       <p>
                         <strong className="text-white font-semibold">Engineering + ICT:</strong> Civil infrastructure is paired with smart IoT structural sensors, automated BMS, and fiber-optic communication tunnels.
                       </p>
                     </div>
                     <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-purple-400 mt-2 shrink-0" />
+                      <div className="w-2 h-2 rounded-full bg-teal-400 mt-2 shrink-0" />
                       <p>
                         <strong className="text-white font-semibold">Conferences + Deal Rooms:</strong> Summits host investment deal tables where our real estate and clean energy portfolios secure direct capital commitments.
                       </p>
@@ -189,7 +189,7 @@ export default function AboutSection() {
                     loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-6">
-                    <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">
+                    <span className="text-xs font-semibold text-teal-300 uppercase tracking-wider">
                       Turnkey Conglomerate Architecture
                     </span>
                   </div>
@@ -214,12 +214,12 @@ export default function AboutSection() {
             {CORE_VALUES.map((val, idx) => (
               <div
                 key={idx}
-                className="bg-slate-950/60 border border-slate-800 rounded-xl p-5 hover:border-purple-500/40 transition-colors group"
+                className="bg-slate-950/60 border border-slate-800 rounded-xl p-5 hover:border-teal-500/40 transition-colors group"
               >
-                <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-300 flex items-center justify-center font-mono font-bold text-sm mb-4 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-300 flex items-center justify-center font-mono font-bold text-sm mb-4 group-hover:bg-teal-600 group-hover:text-white transition-colors">
                   0{idx + 1}
                 </div>
-                <h4 className="text-base font-semibold text-white group-hover:text-purple-300 transition-colors">
+                <h4 className="text-base font-semibold text-white group-hover:text-teal-300 transition-colors">
                   {val.title}
                 </h4>
                 <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
@@ -233,15 +233,15 @@ export default function AboutSection() {
         {/* Corporate Trust Badges */}
         <div className="mt-16 pt-8 border-t border-slate-800/80 flex flex-wrap items-center justify-around gap-6 text-slate-400 text-xs sm:text-sm">
           <div className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-purple-400" />
+            <Award className="w-5 h-5 text-teal-400" />
             <span>Chartered Engineering Council Certified</span>
           </div>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-purple-400" />
+            <ShieldCheck className="w-5 h-5 text-teal-400" />
             <span>ISO 9001 Quality & Safety Assured</span>
           </div>
           <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-purple-400" />
+            <Users className="w-5 h-5 text-teal-400" />
             <span>International Event Organizers Protocol</span>
           </div>
         </div>

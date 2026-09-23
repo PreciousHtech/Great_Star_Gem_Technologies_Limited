@@ -36,25 +36,27 @@ export default function Footer() {
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-2.5">
               <div>
-                <div
-                  className="w-6 h-6 bg-purple-800"
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    WebkitMaskImage: "url(/GreatStarGem_Logo.png)",
-                    maskImage: "url(/GreatStarGem_Logo.png)",
-                    WebkitMaskSize: "contain",
-                    maskSize: "contain",
-                    WebkitMaskRepeat: "no-repeat",
-                    maskRepeat: "no-repeat",
-                    WebkitMaskPosition: "center",
-                    maskPosition: "center",
-                  }}
-                />
+                <div className="w-15 h-15 bg-black rounded-full flex items-center justify-center">
+                  <div
+                      className="w-7 h-7 bg-teal-700"
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        WebkitMaskImage: "url(/GreatStarGem_Logo.png)",
+                        maskImage: "url(/GreatStarGem_Logo.png)",
+                        WebkitMaskSize: "contain",
+                        maskSize: "contain",
+                        WebkitMaskRepeat: "no-repeat",
+                        maskRepeat: "no-repeat",
+                        WebkitMaskPosition: "center",
+                        maskPosition: "center",
+                      }}
+                    />
+                </div>
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold tracking-tight text-white font-['Outfit',sans-serif]">
-                  GreatStar<span className="text-purple-400">Gem</span>
+                  GreatStar<span className="text-teal-500">Gem</span>
                 </span>
                 <span className="text-[10px] tracking-widest uppercase font-medium text-slate-400">
                   Global Conglomerate
@@ -66,7 +68,7 @@ export default function Footer() {
               GreatStarGem delivers high-level global conferences, resilient real estate development, commercial solar installations, civil engineering, and enterprise ICT solutions.
             </p>
 
-            <div className="pt-2 flex items-center gap-2 text-xs text-purple-400/90 font-medium">
+            <div className="pt-2 flex items-center gap-2 text-xs text-teal-400/90 font-medium">
               <Shield className="w-4 h-4" />
               <span>Accredited Global Partner & EPC Contractor</span>
             </div>
@@ -86,7 +88,7 @@ export default function Footer() {
                       e.preventDefault();
                       scrollToSection(link.href);
                     }}
-                    className="hover:text-purple-400 transition-colors cursor-pointer capitalize"
+                    className="hover:text-teal-400 transition-colors cursor-pointer capitalize"
                   >
                     {link.name}
                   </a>
@@ -109,7 +111,7 @@ export default function Footer() {
                       e.preventDefault();
                       scrollToSection('#services');
                     }}
-                    className="hover:text-purple-400 transition-colors cursor-pointer"
+                    className="hover:text-teal-400 transition-colors cursor-pointer"
                   >
                     {s.shortTitle}
                   </a>
@@ -141,11 +143,11 @@ export default function Footer() {
                     value={newsletterEmail}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
                     placeholder="Enter executive email..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-purple-500 placeholder:text-slate-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-teal-500 placeholder:text-slate-500"
                   />
                   <button
                     type="submit"
-                    className="absolute right-1.5 top-1.5 bottom-1.5 px-3 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center shadow-sm"
+                    className="absolute right-1.5 top-1.5 bottom-1.5 px-3 rounded-lg bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center shadow-sm"
                     aria-label="Subscribe to newsletter"
                   >
                     <Send className="w-3 h-3" />
@@ -159,7 +161,7 @@ export default function Footer() {
 
         {/* Bottom Strip */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} GreatStarGem. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} GreatStarGemTechnologies. All rights reserved.</p>
           
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <span>ISO 9001:2015 Certified</span>
@@ -168,7 +170,7 @@ export default function Footer() {
             <button
               type="button"
               onClick={scrollToTop}
-              className="flex items-center gap-1 text-slate-400 hover:text-purple-400 transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-slate-400 hover:text-teal-400 transition-colors cursor-pointer"
               id="back-to-top-btn"
             >
               <span>Top</span>

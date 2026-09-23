@@ -240,12 +240,12 @@ export default function SecuritySettingsTab() {
         <div
           className={`p-4 rounded-2xl border flex items-center gap-3 text-xs animate-in fade-in duration-200 ${
             feedback.type === 'success'
-              ? 'bg-purple-500/10 border-purple-500/30 text-purple-200'
+              ? 'bg-teal-500/10 border-teal-500/30 text-teal-200'
               : 'bg-red-500/10 border-red-500/30 text-red-200'
           }`}
         >
           {feedback.type === 'success' ? (
-            <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0" />
           ) : (
             <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
           )}
@@ -259,7 +259,7 @@ export default function SecuritySettingsTab() {
         <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-900">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+              <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
                 <Lock className="w-5 h-5" />
               </div>
               <div>
@@ -282,7 +282,7 @@ export default function SecuritySettingsTab() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
                 />
               </div>
 
@@ -294,7 +294,7 @@ export default function SecuritySettingsTab() {
                   {currentPassword && (
                     <div className="flex items-center gap-2">
                       {currentPasswordStatus === 'checking' && (
-                        <span className="flex items-center gap-1 text-[10px] text-purple-400 font-mono">
+                        <span className="flex items-center gap-1 text-[10px] text-teal-400 font-mono">
                           <Loader2 className="w-3 h-3 animate-spin" /> Verifying match...
                         </span>
                       )}
@@ -312,7 +312,7 @@ export default function SecuritySettingsTab() {
                         <button
                           type="button"
                           onClick={() => handleVerifyCurrentPassword()}
-                          className="text-[10px] text-purple-400 hover:text-purple-300 underline font-semibold cursor-pointer"
+                          className="text-[10px] text-teal-400 hover:text-teal-300 underline font-semibold cursor-pointer"
                         >
                           Verify Match
                         </button>
@@ -552,7 +552,7 @@ export default function SecuritySettingsTab() {
                 <button
                   type="submit"
                   disabled={isSubmittingCredentials}
-                  className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-500 text-white shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   id="update-credentials-btn"
                 >
                   <Save className="w-3.5 h-3.5" />
@@ -587,18 +587,13 @@ export default function SecuritySettingsTab() {
               </div>
             </div>
           </div>
-
-          <div className="mt-6 pt-4 border-t border-slate-900 text-[11px] text-slate-500 flex items-center justify-between">
-            <span>Password Storage: Salted PBKDF2-SHA512 (Zero Plain Text)</span>
-            <span>Database: PostgreSQL Synced</span>
-          </div>
         </div>
 
         {/* Section 2: Access Control Settings */}
         <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-900">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+              <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
@@ -620,7 +615,7 @@ export default function SecuritySettingsTab() {
                 <select
                   value={sessionTimeout}
                   onChange={(e) => setSessionTimeout(Number(e.target.value))}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-purple-500 cursor-pointer"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 cursor-pointer"
                 >
                   <option value={15}>15 Minutes of Inactivity</option>
                   <option value={30}>30 Minutes of Inactivity (Recommended)</option>
@@ -638,7 +633,7 @@ export default function SecuritySettingsTab() {
                   className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                   id="save-access-control-btn"
                 >
-                  <Save className="w-3.5 h-3.5 text-purple-400" />
+                  <Save className="w-3.5 h-3.5 text-teal-400" />
                   <span>Save Session Timeout</span>
                 </button>
               </div>
@@ -656,7 +651,7 @@ export default function SecuritySettingsTab() {
       <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-900">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
               <Key className="w-5 h-5" />
             </div>
             <div>
@@ -675,7 +670,7 @@ export default function SecuritySettingsTab() {
             className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1.5 self-start cursor-pointer"
             id="regenerate-api-token-btn"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-purple-400" />
+            <RefreshCw className="w-3.5 h-3.5 text-teal-400" />
             <span>Regenerate Token</span>
           </button>
         </div>
@@ -725,7 +720,7 @@ export default function SecuritySettingsTab() {
                 type="text"
                 value={webhookSecret}
                 onChange={(e) => setWebhookSecret(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-mono text-xs focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-mono text-xs focus:outline-none focus:border-teal-500"
               />
             </div>
 
@@ -735,7 +730,7 @@ export default function SecuritySettingsTab() {
               </label>
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800">
                 <div className="flex items-center gap-2 text-xs text-slate-300 font-mono">
-                  <Globe className="w-4 h-4 text-purple-400" />
+                  <Globe className="w-4 h-4 text-teal-400" />
                   <span>/api/v1/content/projects</span>
                 </div>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/20">

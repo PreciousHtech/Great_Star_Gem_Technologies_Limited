@@ -26,14 +26,14 @@ export default function TestimonialsSection() {
 
   return (
     <section id="testimonials" className="py-24 sm:py-32 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white relative overflow-hidden">
-      {/* Background radial purple accent */}
-      <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[36rem] h-64 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Background radial teal accent */}
+      <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[36rem] h-64 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold uppercase tracking-wider mb-4">
             <span>Enduring Partnerships</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
@@ -47,15 +47,15 @@ export default function TestimonialsSection() {
         {/* Featured Testimonial Spotlight */}
         {activeTestimonial && (
           <div className="max-w-4xl mx-auto bg-slate-900/95 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl relative backdrop-blur-sm">
-            <div className="absolute top-6 right-8 text-purple-500/15">
+            <div className="absolute top-6 right-8 text-teal-500/15">
               <Quote className="w-20 h-20" />
             </div>
 
             <div className="relative space-y-6">
               {/* Star Rating */}
-              <div className="flex items-center gap-1 text-purple-400">
+              <div className="flex items-center gap-1 text-teal-400">
                 {[...Array(activeTestimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-purple-400 text-purple-400" />
+                  <Star key={i} className="w-5 h-5 fill-teal-400 text-teal-400" />
                 ))}
               </div>
 
@@ -70,14 +70,14 @@ export default function TestimonialsSection() {
                   <img
                     src={activeTestimonial.avatar}
                     alt={activeTestimonial.name}
-                    className="w-14 h-14 rounded-full object-cover border-2 border-purple-500/40 shadow-sm"
+                    className="w-14 h-14 rounded-full object-cover border-2 border-teal-500/40 shadow-sm"
                   />
                   <div>
                     <div className="text-base font-bold text-white font-['Outfit',sans-serif] flex items-center gap-2">
                       <span>{activeTestimonial.name}</span>
-                      <CheckCircle className="w-4 h-4 text-purple-400" />
+                      <CheckCircle className="w-4 h-4 text-teal-400" />
                     </div>
-                    <div className="text-xs font-medium text-purple-300">
+                    <div className="text-xs font-medium text-teal-300">
                       {activeTestimonial.role}, {activeTestimonial.organization}
                     </div>
                     <div className="text-xs text-slate-400">
@@ -91,7 +91,7 @@ export default function TestimonialsSection() {
                   <button
                     type="button"
                     onClick={prevTestimonial}
-                    className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-purple-500 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-teal-500 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
                     aria-label="Previous testimonial"
                     id="prev-testimonial-btn"
                   >
@@ -103,7 +103,7 @@ export default function TestimonialsSection() {
                   <button
                     type="button"
                     onClick={nextTestimonial}
-                    className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-purple-500 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-teal-500 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
                     aria-label="Next testimonial"
                     id="next-testimonial-btn"
                   >
@@ -123,13 +123,13 @@ export default function TestimonialsSection() {
               onClick={() => setCurrentIndex(idx)}
               className={`p-6 rounded-2xl border transition-all cursor-pointer ${
                 currentIndex === idx
-                  ? 'bg-slate-900/90 border-purple-500/60 shadow-lg shadow-purple-600/10'
-                  : 'bg-slate-950/60 border-slate-800 hover:border-purple-900/50'
+                  ? 'bg-slate-900/90 border-teal-500/60 shadow-lg shadow-teal-600/10'
+                  : 'bg-slate-950/60 border-slate-800 hover:border-teal-900/50'
               }`}
             >
-              <div className="flex items-center gap-1 text-purple-400 mb-3">
+              <div className="flex items-center gap-1 text-teal-400 mb-3">
                 {[...Array(item.rating)].map((_, i) => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-purple-400 text-purple-400" />
+                  <Star key={i} className="w-3.5 h-3.5 fill-teal-400 text-teal-400" />
                 ))}
               </div>
               <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed mb-4">

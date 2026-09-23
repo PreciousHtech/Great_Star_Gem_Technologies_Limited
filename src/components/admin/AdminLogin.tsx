@@ -117,7 +117,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden">
       {/* Background Ambience Glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[34rem] h-[34rem] bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[34rem] h-[34rem] bg-teal-600/15 rounded-full blur-3xl pointer-events-none" />
 
       {/* Return to Public Website */}
       <div className="w-full max-w-md mb-6 flex justify-between items-center z-10">
@@ -131,7 +131,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
           <span>Return to Public Website</span>
         </button>
 
-        <span className="text-[11px] font-mono text-purple-400/80 bg-purple-500/10 px-2.5 py-1 rounded border border-purple-500/20">
+        <span className="text-[11px] font-mono text-teal-400/80 bg-teal-500/10 px-2.5 py-1 rounded border border-teal-500/20">
           SECURE PORTAL
         </span>
       </div>
@@ -142,13 +142,13 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
           <>
             {/* Header Icon */}
             <div className="text-center space-y-3 mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 via-purple-500 to-purple-400 flex items-center justify-center mx-auto shadow-lg shadow-purple-600/30">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-teal-600 via-teal-500 to-teal-400 flex items-center justify-center mx-auto shadow-lg shadow-teal-600/30">
                 <Lock className="w-8 h-8 text-white" />
               </div>
 
               <div>
-                <div className="text-xs font-mono font-bold tracking-widest text-purple-400 uppercase">
-                  ADMIN CONSOLE
+                <div className="text-xs font-mono font-bold tracking-widest text-teal-400 uppercase">
+                  ADMIN PORTAL
                 </div>
                 <h1 className="text-2xl font-extrabold text-white font-['Outfit',sans-serif] mt-1">
                   Restricted Access
@@ -191,7 +191,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="admin"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
                     id="admin-username-input"
                   />
                 </div>
@@ -211,7 +211,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
                     id="admin-password-input"
                   />
                   <button
@@ -234,7 +234,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                       setError(null);
                       setRecoverySuccess(null);
                     }}
-                    className="text-xs text-purple-400 hover:text-purple-300 transition-colors font-medium cursor-pointer hover:underline"
+                    className="text-xs text-teal-400 hover:text-teal-300 transition-colors font-medium cursor-pointer hover:underline"
                     id="admin-forgot-password-link"
                   >
                     Reset with Recovery Key
@@ -246,7 +246,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white shadow-lg shadow-purple-600/30 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 id="admin-login-submit-btn"
               >
                 {isLoading ? (
@@ -254,7 +254,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                 ) : (
                   <>
                     <ShieldCheck className="w-4 h-4" />
-                    <span>Enter Admin Console</span>
+                    <span>Enter Admin Portal</span>
                   </>
                 )}
               </button>
@@ -264,7 +264,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
           /* Step 2: Emergency Master Recovery Key Screen */
           <div className="space-y-6" id="admin-recovery-view">
             <div className="text-center space-y-3">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 via-purple-600 to-indigo-500 flex items-center justify-center mx-auto shadow-lg shadow-amber-600/20">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 via-teal-600 to-indigo-500 flex items-center justify-center mx-auto shadow-lg shadow-amber-600/20">
                 <LifeBuoy className="w-8 h-8 text-white" />
               </div>
 
@@ -323,7 +323,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                   Configured via <code className="text-amber-300 font-mono text-[10px]">ADMIN_RECOVERY_KEY</code> in your environment.
                   {recoveryStatusInfo?.defaultKeyHint && (
                     <span className="block text-slate-400 text-[10px] mt-0.5">
-                      Default Key: <code className="text-purple-300 font-mono">{recoveryStatusInfo.defaultKeyHint}</code>
+                      Default Key: <code className="text-teal-300 font-mono">{recoveryStatusInfo.defaultKeyHint}</code>
                     </span>
                   )}
                 </p>
@@ -344,7 +344,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Create new password"
-                    className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
                     id="admin-new-password-input"
                   />
                   <button
@@ -424,7 +424,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm new password"
-                    className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
                     id="admin-confirm-password-input"
                   />
                   <button
@@ -445,7 +445,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                 <button
                   type="submit"
                   disabled={isLoading || !recoveryKey || !newPassword || !confirmPassword || newPassword !== confirmPassword || !passwordStrength.isValid}
-                  className="w-full py-3.5 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-600/30 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-teal-600 to-indigo-600 hover:from-teal-500 hover:to-indigo-500 text-white shadow-lg shadow-teal-600/30 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   id="admin-recovery-submit-btn"
                 >
                   {isLoading ? (
@@ -477,7 +477,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
           </span>
           <span>•</span>
           <span className="flex items-center gap-1">
-            <ShieldCheck className="w-3 h-3 text-purple-400" />
+            <ShieldCheck className="w-3 h-3 text-teal-400" />
             Master Key Recovery
           </span>
         </div>

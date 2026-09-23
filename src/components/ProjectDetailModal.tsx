@@ -35,7 +35,7 @@ export default function ProjectDetailModal({ project, onClose, onInquire }: Proj
           </button>
 
           <div className="absolute bottom-4 left-6 right-6">
-            <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-semibold uppercase tracking-wider">
+            <span className="px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/40 text-xs font-semibold uppercase tracking-wider">
               {project.categoryName}
             </span>
             <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-['Outfit',sans-serif] mt-2">
@@ -49,21 +49,21 @@ export default function ProjectDetailModal({ project, onClose, onInquire }: Proj
           {/* Metadata Row */}
           <div className="grid grid-cols-3 gap-3 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800 text-xs">
             <div className="flex items-center gap-2 text-slate-300">
-              <MapPin className="w-4 h-4 text-purple-400 shrink-0" />
+              <MapPin className="w-4 h-4 text-teal-400 shrink-0" />
               <span className="truncate">{project.location}</span>
             </div>
             <div className="flex items-center gap-2 text-slate-300">
-              <Calendar className="w-4 h-4 text-purple-400 shrink-0" />
+              <Calendar className="w-4 h-4 text-teal-400 shrink-0" />
               <span>{project.year}</span>
             </div>
             <div className="flex items-center gap-2 text-slate-300">
-              <Building className="w-4 h-4 text-purple-400 shrink-0" />
+              <Building className="w-4 h-4 text-teal-400 shrink-0" />
               <span className="truncate">{project.client}</span>
             </div>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-purple-400 mb-2">
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-teal-400 mb-2">
               Project Summary
             </h4>
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
@@ -99,8 +99,8 @@ export default function ProjectDetailModal({ project, onClose, onInquire }: Proj
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {project.impactMetrics.map((metric, i) => (
-                  <div key={i} className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/25 text-center">
-                    <CheckCircle2 className="w-4 h-4 text-purple-400 mx-auto mb-1" />
+                  <div key={i} className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/25 text-center">
+                    <CheckCircle2 className="w-4 h-4 text-teal-400 mx-auto mb-1" />
                     <div className="text-sm font-bold text-white font-['Outfit',sans-serif]">
                       {metric}
                     </div>
@@ -127,7 +127,7 @@ export default function ProjectDetailModal({ project, onClose, onInquire }: Proj
               onInquire(project.category);
               onClose();
             }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold text-sm shadow-md shadow-purple-600/30 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white font-bold text-sm shadow-md shadow-teal-600/30 transition-all cursor-pointer"
           >
             <span>Inquire Similar Project</span>
             <ArrowRight className="w-4 h-4" />

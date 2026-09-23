@@ -86,7 +86,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold uppercase tracking-wider mb-4">
             <span>Initiate Engagement</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
@@ -110,7 +110,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
 
               <div className="space-y-4 text-sm text-slate-300">
                 <div className="flex items-start gap-3.5">
-                  <div className="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-9 h-9 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 mt-0.5">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
@@ -127,22 +127,22 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                 </div>
 
                 <div className="flex items-start gap-3.5">
-                  <div className="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-9 h-9 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 mt-0.5">
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
                     <span className="text-xs uppercase font-semibold text-slate-400 block">
                       Official Correspondence
                     </span>
-                    <a href="mailto:inquiry@greatstargem.com" className="font-medium text-purple-300 hover:text-purple-200 hover:underline mt-0.5 block">
-                      inquiry@greatstargem.com
+                    <a href="mailto:inquiry@greatstargem.com" className="font-medium text-teal-300 hover:text-teal-200 hover:underline mt-0.5 block">
+                      greatstargemtechnologies@gmail.com
                     </a>
                     <p className="text-xs text-slate-400">Tenders, RFQs & Diplomatic Protocol</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3.5">
-                  <div className="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-9 h-9 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 mt-0.5">
                     <Phone className="w-5 h-5" />
                   </div>
                   <div>
@@ -159,7 +159,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                 </div>
 
                 <div className="flex items-start gap-3.5">
-                  <div className="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-9 h-9 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 mt-0.5">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
@@ -179,7 +179,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
 
             {/* Quick FAQ Accordion */}
             <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-6 space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-purple-400">
+              <div className="flex items-center gap-2 text-sm font-semibold text-teal-400">
                 <HelpCircle className="w-4 h-4" />
                 <span>Frequently Asked Inquiries</span>
               </div>
@@ -200,7 +200,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                       >
                         <span className="pr-2">{faq.question}</span>
                         {isExpanded ? (
-                          <ChevronUp className="w-4 h-4 text-purple-400 shrink-0" />
+                          <ChevronUp className="w-4 h-4 text-teal-400 shrink-0" />
                         ) : (
                           <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                         )}
@@ -230,7 +230,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                   </div>
 
                   <div className="space-y-2 max-w-md mx-auto">
-                    <span className="text-xs uppercase font-mono tracking-wider text-purple-400 font-semibold">
+                    <span className="text-xs uppercase font-mono tracking-wider text-teal-400 font-semibold">
                       Inquiry Dispatched Successfully
                     </span>
                     <h3 className="text-2xl font-bold text-white font-['Outfit',sans-serif]">
@@ -239,7 +239,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                     <p className="text-sm text-slate-300 leading-relaxed">
                       Your technical request has been logged under dossier reference:
                     </p>
-                    <div className="py-2.5 px-4 bg-slate-900 border border-purple-500/40 rounded-xl font-mono text-purple-300 font-bold text-lg inline-block shadow-sm">
+                    <div className="py-2.5 px-4 bg-slate-900 border border-teal-500/40 rounded-xl font-mono text-teal-300 font-bold text-lg inline-block shadow-sm">
                       {submittedRef}
                     </div>
                     <p className="text-xs text-slate-400 pt-2">
@@ -278,7 +278,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                       value={formData.service}
                       onChange={(e) => setFormData({ ...formData, service: e.target.value as ServiceCategory })}
                       required
-                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
                       id="form-select-service"
                     >
                       <option value="">-- Choose a Service Vertical --</option>
@@ -302,7 +302,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                         placeholder="e.g. Dr. Kwame Mensah / Apex Consortium"
-                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
                         id="form-input-name"
                       />
                     </div>
@@ -317,7 +317,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         placeholder="name@organization.com"
-                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
                         id="form-input-email"
                       />
                     </div>
@@ -335,7 +335,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         placeholder="+234 ... / +44 ..."
-                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
                         id="form-input-phone"
                       />
                     </div>
@@ -347,7 +347,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                       <select
                         value={formData.estimatedTimeline}
                         onChange={(e) => setFormData({ ...formData, estimatedTimeline: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
                         id="form-select-timeline"
                       >
                         <option value="immediate">Immediate (Within 30 Days)</option>
@@ -369,7 +369,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       placeholder="Detail your capacity requirements (e.g., number of conference delegates, megawatts of solar, civil site square meters, or ICT modernization scope)..."
-                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
                       id="form-input-message"
                     />
                   </div>
@@ -385,7 +385,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-xl font-bold text-sm sm:text-base bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white shadow-lg shadow-purple-600/30 transition-all duration-200 cursor-pointer disabled:opacity-50"
+                      className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-xl font-bold text-sm sm:text-base bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 transition-all duration-200 cursor-pointer disabled:opacity-50"
                       id="submit-proposal-btn"
                     >
                       {isSubmitting ? (

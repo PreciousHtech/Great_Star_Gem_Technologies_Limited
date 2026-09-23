@@ -14,19 +14,19 @@ export default function Hero({ onSelectServiceTab }: HeroProps) {
   return (
     <section id="home" className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
       {/* Background Ambience & Grid Pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(168,85,247,0.18),transparent_55%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(20,184,166,0.18),transparent_55%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#33415515_1px,transparent_1px),linear-gradient(to_bottom,#33415515_1px,transparent_1px)] bg-[size:3rem_3rem] pointer-events-none [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="space-y-8 max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs sm:text-sm font-medium">
-            <Award className="w-4 h-4 text-purple-400" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs sm:text-sm font-medium">
+            <Award className="w-4 h-4 text-teal-400" />
             <span>Multidisciplinary Conglomerate of Choice</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white font-['Outfit',sans-serif] leading-[1.14]">
             Building Infrastructure. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-purple-300 to-purple-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-teal-300 to-teal-500">
               Powering Energy.
             </span> <br />
             Connecting Global Frontiers.
@@ -36,12 +36,12 @@ export default function Hero({ onSelectServiceTab }: HeroProps) {
             <strong className="text-white font-semibold">GreatStarGem</strong> delivers turnkey excellence across five critical economic pillars: world-class international conferences, eco-resilient real estate, commercial solar PV power, multidisciplinary engineering, and enterprise ICT solutions.
           </p>
 
-          {/* CTAs: Purple-button & Slate-button */}
+          {/* CTAs: Teal-button & Slate-button */}
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <button
               type="button"
               onClick={() => scrollToSection('services')}
-              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold text-sm sm:text-base shadow-lg shadow-purple-600/30 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white font-bold text-sm sm:text-base shadow-lg shadow-teal-600/30 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
               id="hero-cta-services"
             >
               <span>Explore Our Services</span>
@@ -61,15 +61,15 @@ export default function Hero({ onSelectServiceTab }: HeroProps) {
           {/* Quick Guarantees */}
           <div className="pt-4 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs sm:text-sm text-slate-400">
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-teal-400" />
               <span>ISO & Regulatory Certified</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-purple-400" />
+              <ShieldCheck className="w-4 h-4 text-teal-400" />
               <span>Turnkey EPC Execution</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Globe className="w-4 h-4 text-slate-300" />
+              <Globe className="w-4 h-4 text-teal-400" />
               <span>Global & Local Compliance</span>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function Hero({ onSelectServiceTab }: HeroProps) {
               <span className="text-3xl sm:text-4xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
                 {stat.value}
               </span>
-              <span className="text-sm font-semibold text-purple-400 mt-1">
+              <span className="text-sm font-semibold text-teal-400 mt-1">
                 {stat.label}
               </span>
               <span className="text-xs text-slate-400 mt-0.5">
