@@ -1,14 +1,14 @@
 import { useState, useMemo, useEffect, FormEvent } from 'react';
 import { 
-  ShieldCheck, Key, Lock, CheckCircle2, Copy, RefreshCw, 
-  AlertTriangle, Eye, EyeOff, Save, Globe, Check, X,
-  Loader2, AlertCircle, LifeBuoy
+  ShieldCheck, Key, Lock, CheckCircle2, RefreshCw, 
+  AlertTriangle, Eye, EyeOff, Save, Check, X,
+  Loader2, AlertCircle, LifeBuoy, Database
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { checkPasswordStrength } from '../../utils/passwordValidator';
 
 export default function SecuritySettingsTab() {
-  const { adminSettings, updateAdminSettings, changeAdminPassword, changeAdminUsername, verifyCurrentPassword } = useData();
+  const { adminSettings, updateAdminSettings, changeAdminPassword, changeAdminUsername, verifyCurrentPassword, updateRecoveryKey } = useData();
 
   // Credentials State
   const [username, setUsername] = useState(adminSettings.username || 'admin');
@@ -24,21 +24,23 @@ export default function SecuritySettingsTab() {
   const [currentPasswordStatus, setCurrentPasswordStatus] = useState<'idle' | 'checking' | 'verified' | 'invalid'>('idle');
   const [currentPasswordFeedback, setCurrentPasswordFeedback] = useState<string>('');
 
-  // Tokens & API State
-  const [apiToken, setApiToken] = useState(adminSettings.apiToken);
-  const [webhookSecret, setWebhookSecret] = useState(adminSettings.webhookSecret);
-  const [copiedToken, setCopiedToken] = useState(false);
-
   // Access Control State
   const [sessionTimeout, setSessionTimeout] = useState(adminSettings.sessionTimeoutMinutes || 30);
-  const [publicApiEnabled, setPublicApiEnabled] = useState(adminSettings.publicApiEnabled);
 
-  // Master Recovery Key status
+  // Master Recovery Key status & management
   const [recoveryStatus, setRecoveryStatus] = useState<{
     enabled: boolean;
     hasCustomKey: boolean;
+    source?: 'database' | 'environment' | 'default';
     defaultKeyHint?: string;
   } | null>(null);
+  const [isEditingRecoveryKey, setIsEditingRecoveryKey] = useState(false);
+  const [newCustomRecoveryKey, setNewCustomRecoveryKey] = useState('');
+  const [recoveryCurrentPassword, setRecoveryCurrentPassword] = useState('');
+  const [showRecoveryCurrentPassword, setShowRecoveryCurrentPassword] = useState(false);
+  const [showNewCustomRecoveryKey, setShowNewCustomRecoveryKey] = useState(false);
+  const [isUpdatingRecoveryKey, setIsUpdatingRecoveryKey] = useState(false);
+  const [recoveryKeyFeedback, setRecoveryKeyFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Notifications
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -206,28 +208,10 @@ export default function SecuritySettingsTab() {
     }
   };
 
-  const handleRegenerateToken = () => {
-    const randomSuffix = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
-    const newToken = `gsg_live_sec_${randomSuffix}`;
-    setApiToken(newToken);
-    updateAdminSettings({ apiToken: newToken });
-    setFeedback({ type: 'success', message: 'Generated and rotated new Production API Token.' });
-    setTimeout(() => setFeedback(null), 3500);
-  };
-
-  const handleCopyToken = () => {
-    navigator.clipboard.writeText(apiToken);
-    setCopiedToken(true);
-    setTimeout(() => setCopiedToken(false), 2000);
-  };
-
   const handleSaveSecuritySettings = (e: FormEvent) => {
     e.preventDefault();
     updateAdminSettings({
-      apiToken,
-      webhookSecret,
       sessionTimeoutMinutes: Number(sessionTimeout),
-      publicApiEnabled
     });
     setFeedback({ type: 'success', message: 'Session timeout policy saved and active.' });
     setTimeout(() => setFeedback(null), 3500);
@@ -274,22 +258,30 @@ export default function SecuritySettingsTab() {
 
             <form onSubmit={handleUpdateCredentials} className="space-y-4" id="admin-credentials-form">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-                  Admin Username
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center justify-between">
+                  <span>Admin Username / Name</span>
+                  <span className="text-[10px] text-teal-400 font-normal lowercase font-mono">
+                    active: {adminSettings.username || 'admin'}
+                  </span>
                 </label>
                 <input
                   type="text"
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  placeholder="e.g. admin or your administrative handle"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
+                  id="admin-username-input"
                 />
+                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                  You can change your admin username/name at any time. Simply enter your current password below to authorize the change.
+                </p>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                    Current Password <span className="text-slate-500 font-normal lowercase">(must match current password)</span>
+                    Current Password <span className="text-slate-500 font-normal lowercase">(required to authorize changes)</span>
                   </label>
                   {currentPassword && (
                     <div className="flex items-center gap-2">
@@ -342,7 +334,7 @@ export default function SecuritySettingsTab() {
                         ? 'border-emerald-500/50 focus:border-emerald-500'
                         : currentPasswordStatus === 'invalid'
                         ? 'border-red-500/50 focus:border-red-500'
-                        : 'border-slate-800 focus:border-purple-500'
+                        : 'border-slate-800 focus:border-teal-500'
                     }`}
                     id="current-admin-password-input"
                   />
@@ -373,14 +365,14 @@ export default function SecuritySettingsTab() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                      New Password
+                      New Password <span className="text-slate-500 font-normal lowercase">(optional if only changing username)</span>
                     </label>
                     {newPassword && (
                       <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
                         passwordStrength.score >= 4 
                           ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' 
                           : passwordStrength.score === 3 
-                          ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+                          ? 'bg-teal-500/10 text-teal-300 border-teal-500/30'
                           : passwordStrength.score === 2
                           ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
                           : 'bg-red-500/10 text-red-300 border-red-500/30'
@@ -469,17 +461,17 @@ export default function SecuritySettingsTab() {
                     <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex gap-1">
                       <div className={`h-full flex-1 rounded-full transition-all duration-300 ${
                         passwordStrength.score >= 1 
-                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : passwordStrength.score === 3 ? 'bg-purple-400' : passwordStrength.score === 2 ? 'bg-amber-400' : 'bg-red-400'
+                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : passwordStrength.score === 3 ? 'bg-teal-400' : passwordStrength.score === 2 ? 'bg-amber-400' : 'bg-red-400'
                           : 'bg-transparent'
                       }`} />
                       <div className={`h-full flex-1 rounded-full transition-all duration-300 ${
                         passwordStrength.score >= 2 
-                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : passwordStrength.score === 3 ? 'bg-purple-400' : 'bg-amber-400'
+                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : passwordStrength.score === 3 ? 'bg-teal-400' : 'bg-amber-400'
                           : 'bg-transparent'
                       }`} />
                       <div className={`h-full flex-1 rounded-full transition-all duration-300 ${
                         passwordStrength.score >= 3 
-                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : 'bg-purple-400'
+                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : 'bg-teal-400'
                           : 'bg-transparent'
                       }`} />
                       <div className={`h-full flex-1 rounded-full transition-all duration-300 ${
@@ -556,35 +548,197 @@ export default function SecuritySettingsTab() {
                   id="update-credentials-btn"
                 >
                   <Save className="w-3.5 h-3.5" />
-                  <span>{isSubmittingCredentials ? 'Validating & Updating...' : 'Update & Verify Credentials'}</span>
+                  <span>
+                    {isSubmittingCredentials 
+                      ? 'Validating & Updating...' 
+                      : username.trim() !== (adminSettings.username || 'admin') && !newPassword && !confirmPassword
+                      ? 'Save Updated Admin Username'
+                      : username.trim() !== (adminSettings.username || 'admin') && Boolean(newPassword || confirmPassword)
+                      ? 'Update Admin Username & Password'
+                      : 'Update Administrator Password'}
+                  </span>
                 </button>
               </div>
             </form>
 
-            {/* Master Recovery Key Info Box */}
-            <div className="mt-6 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2.5">
-              <div className="flex items-center justify-between">
+            {/* Master Recovery Key Info & Supabase Management Box */}
+            <div className="mt-6 p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4" id="supabase-recovery-key-card">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <LifeBuoy className="w-4 h-4 text-amber-400" />
                   <span className="text-xs font-bold text-white uppercase tracking-wider">
-                    Emergency Master Recovery Key
+                    Master Recovery Key
                   </span>
                 </div>
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
-                  recoveryStatus?.hasCustomKey
-                    ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                    : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
-                }`}>
-                  {recoveryStatus?.hasCustomKey ? 'Custom Secret Set' : 'Default Key Active'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border ${
+                    recoveryStatus?.source === 'database'
+                      ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                      : recoveryStatus?.source === 'environment'
+                      ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                      : 'bg-slate-800 text-slate-300 border-slate-700'
+                  }`}>
+                    {recoveryStatus?.source === 'database'
+                      ? 'Supabase Table Synced'
+                      : recoveryStatus?.source === 'environment'
+                      ? 'Environment Variable'
+                      : 'Default Key Active'}
+                  </span>
+                </div>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                If you ever forget your password, click &quot;Reset with Recovery Key&quot; on the login page to bypass lockout and configure new credentials.
+
+              <p className="text-xs text-slate-300 leading-relaxed">
+                The Master Recovery Key resets administrative access if you ever forget your password. It is dynamically synced with your PostgreSQL/Supabase database.
               </p>
-              <div className="text-[11px] text-slate-400 bg-slate-950 px-3 py-2 rounded-xl border border-slate-800/80 font-mono flex items-center justify-between">
-                <span className="text-slate-400">Environment Variable:</span>
-                <span className="text-amber-300 font-semibold">ADMIN_RECOVERY_KEY</span>
+
+              {/* Source Diagnostic details */}
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 space-y-2 text-[11px] font-mono">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span className="flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-teal-400" />
+                    <span>Supabase Table:</span>
+                  </span>
+                  <span className="text-teal-300 font-semibold">&quot;AdminSetting&quot; (&quot;recoveryKey&quot;)</span>
+                </div>
+                <div className="flex items-center justify-between text-slate-400 pt-1 border-t border-slate-900">
+                  <span>Direct Supabase Edit:</span>
+                  <span className="text-emerald-400">Fully Supported & Live</span>
+                </div>
               </div>
+
+              {/* Feedback Alert */}
+              {recoveryKeyFeedback && (
+                <div className={`p-3 rounded-xl border flex items-start gap-2.5 text-xs ${
+                  recoveryKeyFeedback.type === 'success'
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                    : 'bg-red-500/10 border-red-500/30 text-red-300'
+                }`}>
+                  {recoveryKeyFeedback.type === 'success' ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  )}
+                  <span>{recoveryKeyFeedback.message}</span>
+                </div>
+              )}
+
+              {/* Toggle to change recovery key directly from Portal */}
+              {!isEditingRecoveryKey ? (
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditingRecoveryKey(true);
+                      setRecoveryKeyFeedback(null);
+                    }}
+                    className="text-xs text-teal-400 hover:text-teal-300 font-semibold underline underline-offset-2 cursor-pointer flex items-center gap-1"
+                    id="toggle-edit-recovery-key-btn"
+                  >
+                    <Key className="w-3.5 h-3.5" />
+                    <span>Update Recovery Key in Database</span>
+                  </button>
+                  <span className="text-[10px] text-slate-500 font-mono">Or edit directly in Supabase</span>
+                </div>
+              ) : (
+                <div className="pt-2 border-t border-slate-800 space-y-3">
+                  <div className="text-xs font-semibold text-slate-200 flex items-center justify-between">
+                    <span>Set New Master Recovery Key</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingRecoveryKey(false);
+                        setRecoveryCurrentPassword('');
+                        setNewCustomRecoveryKey('');
+                        setRecoveryKeyFeedback(null);
+                      }}
+                      className="text-slate-400 hover:text-white text-[11px] cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                      New Recovery Key (minimum 8 characters)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showNewCustomRecoveryKey ? 'text' : 'password'}
+                        value={newCustomRecoveryKey}
+                        onChange={(e) => setNewCustomRecoveryKey(e.target.value)}
+                        placeholder="e.g. My-Secure-Secret-Key-2026"
+                        className="w-full pl-3 pr-10 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewCustomRecoveryKey(!showNewCustomRecoveryKey)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
+                      >
+                        {showNewCustomRecoveryKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                      Verify Current Admin Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showRecoveryCurrentPassword ? 'text' : 'password'}
+                        value={recoveryCurrentPassword}
+                        onChange={(e) => setRecoveryCurrentPassword(e.target.value)}
+                        placeholder="Enter active admin password"
+                        className="w-full pl-3 pr-10 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRecoveryCurrentPassword(!showRecoveryCurrentPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
+                      >
+                        {showRecoveryCurrentPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={isUpdatingRecoveryKey || !newCustomRecoveryKey || !recoveryCurrentPassword}
+                    onClick={async () => {
+                      if (!recoveryCurrentPassword || !newCustomRecoveryKey) return;
+                      setIsUpdatingRecoveryKey(true);
+                      setRecoveryKeyFeedback(null);
+                      const res = await updateRecoveryKey(recoveryCurrentPassword, newCustomRecoveryKey.trim());
+                      setIsUpdatingRecoveryKey(false);
+                      if (res.success) {
+                        setRecoveryKeyFeedback({ type: 'success', message: res.message });
+                        setRecoveryCurrentPassword('');
+                        setNewCustomRecoveryKey('');
+                        fetch('/api/admin/recovery-status')
+                          .then((r) => r.json())
+                          .then((data) => setRecoveryStatus(data))
+                          .catch(() => {});
+                      } else {
+                        setRecoveryKeyFeedback({ type: 'error', message: res.message });
+                      }
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                    id="save-recovery-key-btn"
+                  >
+                    {isUpdatingRecoveryKey ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving to Supabase Database...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Database className="w-3.5 h-3.5" />
+                        <span>Save to Supabase Database</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -643,101 +797,6 @@ export default function SecuritySettingsTab() {
           <div className="mt-6 pt-4 border-t border-slate-900 text-[11px] text-slate-500 flex items-center justify-between">
             <span>Session Inactivity Guard: Active</span>
             <span className="text-emerald-400 font-mono">ENFORCING ({sessionTimeout} MIN)</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Section 3: API Tokens & Integration */}
-      <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
-              <Key className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-white font-['Outfit',sans-serif]">
-                Developer API Tokens & Endpoints
-              </h3>
-              <p className="text-xs text-slate-400">
-                Secret bearer keys for automated project publishing, CMS hooks, and headless content querying.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleRegenerateToken}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1.5 self-start cursor-pointer"
-            id="regenerate-api-token-btn"
-          >
-            <RefreshCw className="w-3.5 h-3.5 text-teal-400" />
-            <span>Regenerate Token</span>
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {/* Production Token */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-              Production Bearer API Key
-            </label>
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  readOnly
-                  value={apiToken}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-purple-300 font-mono text-xs focus:outline-none"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleCopyToken}
-                className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
-              >
-                {copiedToken ? (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Webhook Secret */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Webhook Signing Secret
-              </label>
-              <input
-                type="text"
-                value={webhookSecret}
-                onChange={(e) => setWebhookSecret(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-mono text-xs focus:outline-none focus:border-teal-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Headless Content API Routing
-              </label>
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800">
-                <div className="flex items-center gap-2 text-xs text-slate-300 font-mono">
-                  <Globe className="w-4 h-4 text-teal-400" />
-                  <span>/api/v1/content/projects</span>
-                </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/20">
-                  Ready
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

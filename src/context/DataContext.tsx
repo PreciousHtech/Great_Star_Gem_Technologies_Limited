@@ -19,8 +19,6 @@ export interface DbStatus {
 const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
   username: 'admin',
   email: 'admin@greatstargem.com',
-  apiToken: 'gsg_live_sec_89f3b14092de718a22c4',
-  webhookSecret: 'whsec_993417aa88de1b329419c',
   sessionTimeoutMinutes: 30,
   publicApiEnabled: true,
   lastUpdated: new Date().toISOString()
@@ -32,10 +30,12 @@ interface DataContextType {
   addProject: (project: Omit<ProjectItem, 'id'>) => Promise<ProjectItem>;
   updateProject: (id: string, updated: Partial<ProjectItem>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
+  deleteAllProjects: () => Promise<{ success: boolean; message?: string }>;
   resetProjects: () => void;
   addTestimonial: (testimonial: Omit<TestimonialItem, 'id'>) => Promise<TestimonialItem>;
   updateTestimonial: (id: string, updated: Partial<TestimonialItem>) => Promise<void>;
   deleteTestimonial: (id: string) => Promise<void>;
+  deleteAllTestimonials: () => Promise<{ success: boolean; message?: string }>;
   resetTestimonials: () => void;
   isAdminLoggedIn: boolean;
   adminLogin: (user: string, pass: string) => Promise<{
@@ -51,6 +51,7 @@ interface DataContextType {
   verifyCurrentPassword: (currentPass: string) => Promise<{ valid: boolean; message?: string }>;
   changeAdminPassword: (currentPass: string, newPass: string, confirmPass: string) => Promise<{ success: boolean; message: string }>;
   changeAdminUsername: (newUsername: string, currentPassword: string) => Promise<{ success: boolean; message: string }>;
+  updateRecoveryKey: (currentPassword: string, newRecoveryKey: string) => Promise<{ success: boolean; message: string }>;
   recoverAdminPassword: (
     recoveryKey: string,
     newPassword: string,
@@ -65,9 +66,16 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | null>(null);
 
+const MOCK_PROJECT_IDS = new Set([
+  'proj-webapp-1', 'proj-webapp-2', 'proj-1', 'proj-2', 'proj-3', 'proj-4', 'proj-5', 'proj-6'
+]);
+const MOCK_TESTIMONIAL_IDS = new Set([
+  'test-pepple', 'test-princewill', 't-1', 't-2', 't-3', 't-4', 't-5'
+]);
+
 const STORAGE_KEYS = {
-  PROJECTS: 'gsg_projects_v2',
-  TESTIMONIALS: 'gsg_testimonials_v2',
+  PROJECTS: 'gsg_projects_v4',
+  TESTIMONIALS: 'gsg_testimonials_v4',
   AUTH: 'gsg_admin_auth_v2',
   SETTINGS: 'gsg_admin_settings_v2',
   PASSWORD: 'gsg_admin_pass_v2'
@@ -78,22 +86,50 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<ProjectItem[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.PROJECTS);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((p: any) => !MOCK_PROJECT_IDS.has(p.id));
+        }
+      }
+      const oldSaved = localStorage.getItem('gsg_projects_v2');
+      if (oldSaved) {
+        const oldParsed = JSON.parse(oldSaved);
+        if (Array.isArray(oldParsed)) {
+          const userOnly = oldParsed.filter((p: any) => !MOCK_PROJECT_IDS.has(p.id));
+          localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(userOnly));
+          return userOnly;
+        }
+      }
     } catch (e) {
       console.error('Failed to load projects from localStorage', e);
     }
-    return PROJECTS_DATA;
+    return [];
   });
 
   // 2. Testimonials State
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.TESTIMONIALS);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((t: any) => !MOCK_TESTIMONIAL_IDS.has(t.id));
+        }
+      }
+      const oldSaved = localStorage.getItem('gsg_testimonials_v2');
+      if (oldSaved) {
+        const oldParsed = JSON.parse(oldSaved);
+        if (Array.isArray(oldParsed)) {
+          const userOnly = oldParsed.filter((t: any) => !MOCK_TESTIMONIAL_IDS.has(t.id));
+          localStorage.setItem(STORAGE_KEYS.TESTIMONIALS, JSON.stringify(userOnly));
+          return userOnly;
+        }
+      }
     } catch (e) {
       console.error('Failed to load testimonials from localStorage', e);
     }
-    return TESTIMONIALS_DATA;
+    return [];
   });
 
   // 3. Auth State
@@ -355,6 +391,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteAllProjects = async (): Promise<{ success: boolean; message?: string }> => {
+    setProjects([]);
+    try {
+      localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify([]));
+    } catch (e) {
+      console.error(e);
+    }
+    try {
+      const res = await fetch('/api/projects', {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      return { success: true, message: data.message || 'All projects deleted successfully.' };
+    } catch (err) {
+      console.warn('API delete all projects warning:', err);
+      return { success: true, message: 'All projects cleared.' };
+    }
+  };
+
   const resetProjects = () => {
     setProjects(PROJECTS_DATA);
     try {
@@ -438,6 +493,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
       });
     } catch (err) {
       console.warn('API delete testimonial warning:', err);
+    }
+  };
+
+  const deleteAllTestimonials = async (): Promise<{ success: boolean; message?: string }> => {
+    setTestimonials([]);
+    try {
+      localStorage.setItem(STORAGE_KEYS.TESTIMONIALS, JSON.stringify([]));
+    } catch (e) {
+      console.error(e);
+    }
+    try {
+      const res = await fetch('/api/testimonials', {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      return { success: true, message: data.message || 'All testimonials deleted successfully.' };
+    } catch (err) {
+      console.warn('API delete all testimonials warning:', err);
+      return { success: true, message: 'All testimonials cleared.' };
     }
   };
 
@@ -742,6 +816,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateRecoveryKey = async (
+    currentPass: string,
+    newRecoveryKey: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const res = await fetch('/api/admin/update-recovery-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: currentPass,
+          newRecoveryKey,
+        }),
+      });
+      const data = await res.json();
+      return {
+        success: Boolean(res.ok && data.success),
+        message: data.message || 'Recovery key updated.',
+      };
+    } catch {
+      return {
+        success: false,
+        message: 'Could not communicate with authentication server to update recovery key.',
+      };
+    }
+  };
+
   const adminLogout = (reason?: string) => {
     setIsAdminLoggedIn(false);
     if (reason) {
@@ -824,10 +924,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
         addProject,
         updateProject,
         deleteProject,
+        deleteAllProjects,
         resetProjects,
         addTestimonial,
         updateTestimonial,
         deleteTestimonial,
+        deleteAllTestimonials,
         resetTestimonials,
         isAdminLoggedIn,
         adminLogin,
@@ -840,6 +942,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         verifyCurrentPassword,
         changeAdminPassword,
         changeAdminUsername,
+        updateRecoveryKey,
         recoverAdminPassword,
         currentRoute,
         navigateTo,

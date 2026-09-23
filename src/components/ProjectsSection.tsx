@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, MapPin, Calendar, ExternalLink } from 'lucide-react';
+import { ArrowRight, MapPin, Calendar, ExternalLink, Layers } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { ProjectItem, ServiceCategory } from '../types';
 
@@ -13,6 +13,7 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
 
   const filterTabs: { id: 'all' | ServiceCategory; label: string }[] = [
     { id: 'all', label: 'All Portfolios' },
+    { id: 'web-application', label: 'Web Applications' },
     { id: 'conference', label: 'Global Conferences' },
     { id: 'real-estate', label: 'Real Estate' },
     { id: 'solar', label: 'Solar Power' },
@@ -22,7 +23,10 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
 
   const filteredProjects = activeFilter === 'all'
     ? projects
-    : projects.filter((p) => p.category === activeFilter);
+    : projects.filter((p) => 
+        p.category === activeFilter || 
+        (activeFilter === 'web-application' && (p.category === 'web-application' || p.category === 'web-dev'))
+      );
 
   return (
     <section id="projects" className="py-24 sm:py-32 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-white relative overflow-hidden">
@@ -45,107 +49,130 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
             </p>
           </div>
 
-          <div className="text-sm text-slate-400 font-mono">
-            Showing {filteredProjects.length} of {projects.length} Featured Case Studies
-          </div>
-        </div>
-
-        {/* Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
-          {filterTabs.map((tab) => {
-            const isActive = activeFilter === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveFilter(tab.id)}
-                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                  isActive
-                    ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
-                    : 'bg-slate-800/80 border border-slate-700 text-slate-300 hover:border-slate-600 hover:text-white'
-                }`}
-                id={`project-filter-${tab.id}`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Project Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProjects.map((project) => (
-            <div
-              key={project.id}
-              className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden hover:border-teal-500/40 transition-all duration-300 flex flex-col group"
-              id={`project-card-${project.id}`}
-            >
-              {/* Image with hover zoom */}
-              <div className="relative h-56 w-full overflow-hidden">
-                <img
-                  src={project.image}
-                  alt={project.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
-                
-                <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1 rounded-full bg-slate-900/90 text-teal-300 border border-teal-500/30 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
-                    {project.categoryName || project.category}
-                  </span>
-                </div>
-
-                <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-slate-300">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-teal-400" />
-                    <span className="truncate">{project.location || 'Global'}</span>
-                  </span>
-                  <span className="flex items-center gap-1 font-mono">
-                    <Calendar className="w-3.5 h-3.5 text-teal-400" />
-                    <span>{project.year || '2025'}</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-2.5">
-                  <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif] group-hover:text-teal-400 transition-colors">
-                    {project.title}
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    Client: <strong className="text-slate-300 font-medium">{project.client}</strong>
-                  </p>
-                  <p className="text-sm text-slate-300 line-clamp-2 leading-relaxed">
-                    {project.summary}
-                  </p>
-
-                  {/* Impact highlights */}
-                  <div className="pt-3 flex flex-wrap gap-1.5">
-                    {project.impactMetrics && project.impactMetrics.slice(0, 2).map((m, i) => (
-                      <span key={i} className="px-2.5 py-1 rounded-md bg-teal-950/40 border border-teal-800/40 text-[11px] font-semibold text-teal-300">
-                        {m}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-slate-800/80">
-                  <button
-                    type="button"
-                    onClick={() => onOpenProjectModal(project)}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 text-slate-200 hover:text-white border border-slate-700 hover:border-transparent text-xs font-bold transition-all duration-200 cursor-pointer shadow-sm"
-                    id={`view-case-study-${project.id}`}
-                  >
-                    <span>Inspect Case Study</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
+          {projects.length > 0 && (
+            <div className="text-sm text-slate-400 font-mono">
+              Showing {filteredProjects.length} of {projects.length} Featured Case Studies
             </div>
-          ))}
+          )}
         </div>
+
+        {/* If no projects exist */}
+        {projects.length === 0 ? (
+          <div className="py-20 px-6 text-center rounded-3xl bg-slate-950/60 border border-dashed border-slate-800 max-w-xl mx-auto space-y-3">
+            <Layers className="w-12 h-12 text-slate-600 mx-auto" />
+            <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif]">
+              No project available
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+              Our administrative engineering team has not uploaded any projects yet. Please check back soon or contact us directly.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Filter Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
+              {filterTabs.map((tab) => {
+                const isActive = activeFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveFilter(tab.id)}
+                    className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
+                        : 'bg-slate-800/80 border border-slate-700 text-slate-300 hover:border-slate-600 hover:text-white'
+                    }`}
+                    id={`project-filter-${tab.id}`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {filteredProjects.length === 0 ? (
+              <div className="py-16 text-center text-slate-400 font-mono text-sm bg-slate-950/40 border border-dashed border-slate-800 rounded-2xl max-w-md mx-auto">
+                No project available
+              </div>
+            ) : (
+              /* Project Cards Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredProjects.map((project) => (
+                  <div
+                    key={project.id}
+                    className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden hover:border-teal-500/40 transition-all duration-300 flex flex-col group"
+                    id={`project-card-${project.id}`}
+                  >
+                    {/* Image with hover zoom */}
+                    <div className="relative h-56 w-full overflow-hidden">
+                      <img
+                        src={project.image}
+                        alt={project.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+                      
+                      <div className="absolute top-4 left-4">
+                        <span className="px-3 py-1 rounded-full bg-slate-900/90 text-teal-300 border border-teal-500/30 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
+                          {project.categoryName || project.category}
+                        </span>
+                      </div>
+
+                      <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-slate-300">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-teal-400" />
+                          <span className="truncate">{project.location || 'Global'}</span>
+                        </span>
+                        <span className="flex items-center gap-1 font-mono">
+                          <Calendar className="w-3.5 h-3.5 text-teal-400" />
+                          <span>{project.year || '2025'}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="space-y-2.5">
+                        <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif] group-hover:text-teal-400 transition-colors">
+                          {project.title}
+                        </h3>
+                        <p className="text-xs text-slate-400">
+                          Client: <strong className="text-slate-300 font-medium">{project.client}</strong>
+                        </p>
+                        <p className="text-sm text-slate-300 line-clamp-2 leading-relaxed">
+                          {project.summary}
+                        </p>
+
+                        {/* Impact highlights */}
+                        <div className="pt-3 flex flex-wrap gap-1.5">
+                          {project.impactMetrics && project.impactMetrics.slice(0, 2).map((m, i) => (
+                            <span key={i} className="px-2.5 py-1 rounded-md bg-teal-950/40 border border-teal-800/40 text-[11px] font-semibold text-teal-300">
+                              {m}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-800/80">
+                        <button
+                          type="button"
+                          onClick={() => onOpenProjectModal(project)}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 text-slate-200 hover:text-white border border-slate-700 hover:border-transparent text-xs font-bold transition-all duration-200 cursor-pointer shadow-sm"
+                          id={`view-case-study-${project.id}`}
+                        >
+                          <span>Inspect Case Study</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
 
         {/* Global Delivery Banner */}
         <div className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-slate-950 via-teal-950/30 to-slate-950 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">

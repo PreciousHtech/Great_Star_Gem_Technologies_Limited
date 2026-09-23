@@ -44,111 +44,128 @@ export default function TestimonialsSection() {
           </p>
         </div>
 
-        {/* Featured Testimonial Spotlight */}
-        {activeTestimonial && (
-          <div className="max-w-4xl mx-auto bg-slate-900/95 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl relative backdrop-blur-sm">
-            <div className="absolute top-6 right-8 text-teal-500/15">
-              <Quote className="w-20 h-20" />
-            </div>
+        {/* Testimonials Display */}
+        {testimonials.length === 0 ? (
+          <div className="py-20 px-6 text-center rounded-3xl bg-slate-900/60 border border-dashed border-slate-800 max-w-xl mx-auto space-y-3">
+            <Quote className="w-12 h-12 text-slate-600 mx-auto" />
+            <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif]">
+              No testimonials available
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+              Client testimonials and project appraisals will appear here once published by our administrative team.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Featured Testimonial Spotlight */}
+            {activeTestimonial && (
+              <div className="max-w-4xl mx-auto bg-slate-900/95 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl relative backdrop-blur-sm">
+                <div className="absolute top-6 right-8 text-teal-500/15">
+                  <Quote className="w-20 h-20" />
+                </div>
 
-            <div className="relative space-y-6">
-              {/* Star Rating */}
-              <div className="flex items-center gap-1 text-teal-400">
-                {[...Array(activeTestimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-teal-400 text-teal-400" />
-                ))}
-              </div>
+                <div className="relative space-y-6">
+                  {/* Star Rating */}
+                  <div className="flex items-center gap-1 text-teal-400">
+                    {[...Array(activeTestimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 fill-teal-400 text-teal-400" />
+                    ))}
+                  </div>
 
-              {/* Quote text */}
-              <p className="text-lg sm:text-2xl text-slate-100 font-light leading-relaxed italic">
-                "{activeTestimonial.quote}"
-              </p>
+                  {/* Quote text */}
+                  <p className="text-lg sm:text-2xl text-slate-100 font-light leading-relaxed italic">
+                    "{activeTestimonial.quote}"
+                  </p>
 
-              {/* Client Info */}
-              <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <img
-                    src={activeTestimonial.avatar}
-                    alt={activeTestimonial.name}
-                    className="w-14 h-14 rounded-full object-cover border-2 border-teal-500/40 shadow-sm"
-                  />
-                  <div>
-                    <div className="text-base font-bold text-white font-['Outfit',sans-serif] flex items-center gap-2">
-                      <span>{activeTestimonial.name}</span>
-                      <CheckCircle className="w-4 h-4 text-teal-400" />
+                  {/* Client Info */}
+                  <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={activeTestimonial.avatar}
+                        alt={activeTestimonial.name}
+                        className="w-14 h-14 rounded-full object-cover border-2 border-teal-500/40 shadow-sm"
+                      />
+                      <div>
+                        <div className="text-base font-bold text-white font-['Outfit',sans-serif] flex items-center gap-2">
+                          <span>{activeTestimonial.name}</span>
+                          <CheckCircle className="w-4 h-4 text-teal-400" />
+                        </div>
+                        <div className="text-xs font-medium text-teal-300">
+                          {activeTestimonial.role}, {activeTestimonial.organization}
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          {activeTestimonial.country}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xs font-medium text-teal-300">
-                      {activeTestimonial.role}, {activeTestimonial.organization}
-                    </div>
-                    <div className="text-xs text-slate-400">
-                      {activeTestimonial.country}
+
+                    {/* Carousel Controls: Slate-button styling */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={prevTestimonial}
+                        className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-teal-500 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                        aria-label="Previous testimonial"
+                        id="prev-testimonial-btn"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <span className="text-xs font-mono text-slate-400 px-2">
+                        {currentIndex + 1} / {filteredTestimonials.length}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={nextTestimonial}
+                        className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-teal-500 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                        aria-label="Next testimonial"
+                        id="next-testimonial-btn"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
                     </div>
                   </div>
                 </div>
-
-                {/* Carousel Controls: Slate-button styling */}
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={prevTestimonial}
-                    className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-teal-500 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
-                    aria-label="Previous testimonial"
-                    id="prev-testimonial-btn"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <span className="text-xs font-mono text-slate-400 px-2">
-                    {currentIndex + 1} / {filteredTestimonials.length}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={nextTestimonial}
-                    className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-teal-500 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
-                    aria-label="Next testimonial"
-                    id="next-testimonial-btn"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* Small Testimonials Grid (Additional Evidence) */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.slice(0, 3).map((item, idx) => (
-            <div
-              key={item.id}
-              onClick={() => setCurrentIndex(idx)}
-              className={`p-6 rounded-2xl border transition-all cursor-pointer ${
-                currentIndex === idx
-                  ? 'bg-slate-900/90 border-teal-500/60 shadow-lg shadow-teal-600/10'
-                  : 'bg-slate-950/60 border-slate-800 hover:border-teal-900/50'
-              }`}
-            >
-              <div className="flex items-center gap-1 text-teal-400 mb-3">
-                {[...Array(item.rating)].map((_, i) => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-teal-400 text-teal-400" />
+            {/* Small Testimonials Grid (Additional Evidence) */}
+            {testimonials.length > 1 && (
+              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+                {testimonials.slice(0, 3).map((item, idx) => (
+                  <div
+                    key={item.id}
+                    onClick={() => setCurrentIndex(idx)}
+                    className={`p-6 rounded-2xl border transition-all cursor-pointer ${
+                      currentIndex === idx
+                        ? 'bg-slate-900/90 border-teal-500/60 shadow-lg shadow-teal-600/10'
+                        : 'bg-slate-950/60 border-slate-800 hover:border-teal-900/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1 text-teal-400 mb-3">
+                      {[...Array(item.rating)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-teal-400 text-teal-400" />
+                      ))}
+                    </div>
+                    <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed mb-4">
+                      "{item.quote}"
+                    </p>
+                    <div className="flex items-center gap-2.5 pt-3 border-t border-slate-800/80">
+                      <img
+                        src={item.avatar}
+                        alt={item.name}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-semibold text-white truncate">{item.name}</div>
+                        <div className="text-[11px] text-slate-400 truncate">{item.organization}</div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
-              <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed mb-4">
-                "{item.quote}"
-              </p>
-              <div className="flex items-center gap-2.5 pt-3 border-t border-slate-800/80">
-                <img
-                  src={item.avatar}
-                  alt={item.name}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-semibold text-white truncate">{item.name}</div>
-                  <div className="text-[11px] text-slate-400 truncate">{item.organization}</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </>
+        )}
 
         {/* Credibility Counters */}
         <div className="mt-16 pt-8 border-t border-slate-800/80 grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">

@@ -11,8 +11,8 @@ interface AdminLoginProps {
 }
 
 export default function AdminLogin({ onSuccess }: AdminLoginProps) {
-  const { adminLogin, recoverAdminPassword, navigateTo, adminSettings } = useData();
-  const [username, setUsername] = useState(adminSettings.username || 'admin');
+  const { adminLogin, recoverAdminPassword, navigateTo } = useData();
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,15 +38,6 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
   const passwordStrength = checkPasswordStrength(newPassword, username);
 
   useEffect(() => {
-    fetch('/api/admin/auth-status')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.username) {
-          setUsername(data.username);
-        }
-      })
-      .catch(() => {});
-
     fetch('/api/admin/recovery-status')
       .then((res) => res.json())
       .then((data) => {
@@ -179,7 +170,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
             <form onSubmit={handleCredentialsSubmit} className="space-y-5" id="admin-login-form">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                  Admin Username
+                  Admin Name
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -190,7 +181,8 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="admin"
+                    placeholder="Admin name"
+                    autoComplete="off"
                     className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
                     id="admin-username-input"
                   />
@@ -319,14 +311,20 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                     {showRecoveryKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1.5 leading-normal">
-                  Configured via <code className="text-amber-300 font-mono text-[10px]">ADMIN_RECOVERY_KEY</code> in your environment.
+                <div className="mt-2.5 p-3 rounded-xl bg-slate-900/90 border border-slate-800/90 text-[11px] text-slate-300 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-teal-400 font-semibold text-xs">
+                    <Key className="w-3.5 h-3.5" />
+                    <span>Locked Out or Don&apos;t Know the Key?</span>
+                  </div>
+                  <p className="text-slate-400 leading-relaxed text-[11px]">
+                    Open your <strong>Supabase Dashboard → Table Editor → AdminSetting</strong> table. You can directly view or change the <code className="text-teal-300 font-mono text-[10px]">recoveryKey</code> column at any time, then enter it here.
+                  </p>
                   {recoveryStatusInfo?.defaultKeyHint && (
-                    <span className="block text-slate-400 text-[10px] mt-0.5">
-                      Default Key: <code className="text-teal-300 font-mono">{recoveryStatusInfo.defaultKeyHint}</code>
-                    </span>
+                    <div className="text-slate-400 text-[10px] pt-1 border-t border-slate-800/80">
+                      System Default: <code className="text-teal-300 font-mono">{recoveryStatusInfo.defaultKeyHint}</code>
+                    </div>
                   )}
-                </p>
+                </div>
               </div>
 
               {/* Field 2: New Password */}
@@ -363,7 +361,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                       <span className="text-slate-400 text-[11px]">Password Strength:</span>
                       <span className={`font-semibold text-[11px] ${
                         passwordStrength.score >= 4 ? 'text-emerald-400' :
-                        passwordStrength.score === 3 ? 'text-purple-400' :
+                        passwordStrength.score === 3 ? 'text-teal-400' :
                         passwordStrength.score === 2 ? 'text-amber-400' : 'text-red-400'
                       }`}>
                         {passwordStrength.strengthLabel}
@@ -373,17 +371,17 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
                     <div className="grid grid-cols-4 gap-1.5 h-1.5">
                       <div className={`h-full rounded-full transition-colors ${
                         passwordStrength.score >= 1 
-                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : passwordStrength.score === 3 ? 'bg-purple-400' : passwordStrength.score === 2 ? 'bg-amber-400' : 'bg-red-400'
+                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : passwordStrength.score === 3 ? 'bg-teal-400' : passwordStrength.score === 2 ? 'bg-amber-400' : 'bg-red-400'
                           : 'bg-slate-800'
                       }`} />
                       <div className={`h-full rounded-full transition-colors ${
                         passwordStrength.score >= 2 
-                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : passwordStrength.score === 3 ? 'bg-purple-400' : 'bg-amber-400'
+                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : passwordStrength.score === 3 ? 'bg-teal-400' : 'bg-amber-400'
                           : 'bg-slate-800'
                       }`} />
                       <div className={`h-full rounded-full transition-colors ${
                         passwordStrength.score >= 3 
-                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : 'bg-purple-400'
+                          ? passwordStrength.score >= 4 ? 'bg-emerald-400' : 'bg-teal-400'
                           : 'bg-slate-800'
                       }`} />
                       <div className={`h-full rounded-full transition-colors ${

@@ -183,6 +183,26 @@ export default function ServicesSection({
         deliverables: ['Event-Driven Kafka Architecture', 'Sub-millisecond Edge Delivery', 'Global Disaster Recovery', '24/7 Monitored Telemetry'],
         team: 'Engineering Director + Dedicated Full-Stack Pod'
       }
+    },
+    'web-application': {
+      standard: {
+        scopeTitle: 'Custom Web Application & Operational Portal',
+        timeline: '3 - 6 Weeks Agile Build',
+        deliverables: ['Next.js / React Web App', 'Secure API Endpoints', 'Interactive Analytics Dashboard'],
+        team: 'Lead Full-Stack Engineer + UI/UX Designer'
+      },
+      enterprise: {
+        scopeTitle: 'High-Throughput Enterprise Cloud Web App & RBAC',
+        timeline: '2 - 5 Months Phased Delivery',
+        deliverables: ['Real-Time WebSocket Sync', 'Enterprise Multi-Tenancy', 'Automated CI/CD & Cloud SLA', 'Compliance Auditing'],
+        team: 'Cloud Architect + 3 Full-Stack Pod Engineers'
+      },
+      flagship: {
+        scopeTitle: 'Mission-Critical Cloud Web Platform & Data Engine',
+        timeline: '5 - 10 Months Scaled Engineering',
+        deliverables: ['High-Availability Distributed Cluster', 'Zero-Downtime Microservices', '24/7 Monitoring & SLA Uptime'],
+        team: 'Principal Software Architect + SRE Taskforce'
+      }
     }
   };
 

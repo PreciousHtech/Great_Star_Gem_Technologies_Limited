@@ -7,6 +7,7 @@ import { useData } from '../../context/DataContext';
 import { ProjectItem, ServiceCategory } from '../../types';
 
 const CATEGORY_OPTIONS: { id: ServiceCategory; name: string }[] = [
+  { id: 'web-application', name: 'Web Application' },
   { id: 'ict', name: 'ICT Solutions & Cloud' },
   { id: 'conference', name: 'Global Conferences' },
   { id: 'solar', name: 'Solar Power Systems' },
@@ -15,14 +16,16 @@ const CATEGORY_OPTIONS: { id: ServiceCategory; name: string }[] = [
 ];
 
 export default function ProjectsTab() {
-  const { projects, addProject, updateProject, deleteProject, resetProjects } = useData();
+  const { projects, addProject, updateProject, deleteProject, deleteAllProjects, resetProjects } = useData();
 
   // Form states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
 
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<ServiceCategory>('e-commerce');
+  const [category, setCategory] = useState<ServiceCategory>('web-application');
   const [client, setClient] = useState('');
   const [image, setImage] = useState('');
   const [summary, setSummary] = useState('');
@@ -38,14 +41,14 @@ export default function ProjectsTab() {
   const openNewProjectModal = () => {
     setEditingProjectId(null);
     setTitle('');
-    setCategory('e-commerce');
+    setCategory('web-application');
     setClient('');
-    setImage('https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=800&q=80');
+    setImage('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80');
     setSummary('');
     setLiveUrl('');
     setGithubUrl('');
-    setMetric1('High Performance');
-    setMetric2('Production Ready');
+    setMetric1('99.99% Cloud SLA');
+    setMetric2('Enterprise Ready');
     setIsModalOpen(true);
   };
 
@@ -135,6 +138,19 @@ export default function ProjectsTab() {
         </div>
 
         <div className="flex items-center gap-3">
+          {projects.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowDeleteAllModal(true)}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-red-950/40 border border-red-800/60 hover:bg-red-900/60 text-red-300 transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+              id="admin-delete-all-projects-btn"
+              title="Delete all projects at once"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-400" />
+              <span>Delete All</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={resetProjects}
@@ -152,7 +168,7 @@ export default function ProjectsTab() {
             id="admin-add-project-btn"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Upload New Project</span>
+            <span> Upload New Project</span>
           </button>
         </div>
       </div>
@@ -166,8 +182,17 @@ export default function ProjectsTab() {
       )}
 
       {/* Grid List of Active Published Projects */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map((project) => (
+      {projects.length === 0 ? (
+        <div className="py-16 text-center text-slate-400 bg-slate-900/40 border border-dashed border-slate-800 rounded-2xl p-8 space-y-3">
+          <Layers className="w-10 h-10 text-slate-600 mx-auto" />
+          <h3 className="text-base font-bold text-slate-200">No project available</h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            No projects have been uploaded yet. Click "+ Upload New Project" above to create and publish a project.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects.map((project) => (
           <div
             key={project.id}
             className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden hover:border-teal-500/40 transition-all flex flex-col justify-between group shadow-lg"
@@ -278,7 +303,8 @@ export default function ProjectsTab() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmId && (
@@ -482,6 +508,74 @@ export default function ProjectsTab() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Delete All Projects Confirmation */}
+      {showDeleteAllModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => !isDeletingAll && setShowDeleteAllModal(false)}
+        >
+          <div 
+            className="w-full max-w-md bg-slate-900 border border-red-900/50 rounded-2xl shadow-2xl p-6 text-slate-100 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+            id="delete-all-projects-modal"
+          >
+            <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div className="text-center space-y-1.5">
+              <h3 className="text-base font-bold text-white">Delete All Projects?</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Are you sure you want to permanently delete all <strong className="text-white">{projects.length} project(s)</strong> at once?
+              </p>
+              <p className="text-[11px] text-slate-500">
+                This will remove all published projects from both your database and the public website showcase.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeletingAll}
+                onClick={() => setShowDeleteAllModal(false)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingAll}
+                onClick={async () => {
+                  setIsDeletingAll(true);
+                  try {
+                    const res = await deleteAllProjects();
+                    setShowDeleteAllModal(false);
+                    setStatusMessage(res.message || 'All projects have been deleted.');
+                    setTimeout(() => setStatusMessage(null), 4000);
+                  } finally {
+                    setIsDeletingAll(false);
+                  }
+                }}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-md shadow-red-600/30"
+                id="confirm-delete-all-projects-btn"
+              >
+                {isDeletingAll ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting All...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Confirm Delete All</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

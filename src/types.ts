@@ -5,6 +5,7 @@ export type ServiceCategory =
   | 'engineering' 
   | 'ict'
   | 'web-dev'
+  | 'web-application'
   | 'e-commerce';
 
 export interface ServiceItem {
@@ -56,10 +57,8 @@ export interface TestimonialItem {
 export interface AdminSettings {
   username: string;
   email: string;
-  apiToken: string;
-  webhookSecret: string;
   sessionTimeoutMinutes: number;
-  publicApiEnabled: boolean;
+  publicApiEnabled?: boolean;
   lastUpdated?: string;
 }
 

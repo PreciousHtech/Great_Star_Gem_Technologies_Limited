@@ -145,184 +145,41 @@ export const SERVICES_DATA: ServiceItem[] = [
       { label: 'Network Uptime SLA', value: '99.99%' },
       { label: 'Enterprise Clients', value: '85+' }
     ]
+  },
+  {
+    id: 'web-application',
+    title: 'Web Application Development',
+    shortTitle: 'Web Applications',
+    tagline: 'Modern, high-performance full-stack web applications and cloud platforms',
+    description: 'Bespoke web applications, real-time enterprise dashboards, progressive web apps (PWAs), and scalable SaaS solutions engineered for high availability.',
+    fullDescription: 'Our Web Application engineering division specializes in modern full-stack development using Next.js, React, Node.js, and cloud native architectures. We architect mission-critical web applications with sub-second response times, zero-trust security, real-time WebSocket communication, and responsive UX across all devices.',
+    iconName: 'Cpu',
+    badge: 'Full-Stack Engineering',
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80',
+    features: [
+      'Modern Single-Page (SPA) & Progressive Web Applications (PWA)',
+      'Real-Time WebSocket Dashboards & Telemetry Monitoring',
+      'End-to-End Encrypted REST & GraphQL Microservice APIs',
+      'Role-Based Access Control (RBAC) & Single Sign-On (SSO)',
+      'Automated CI/CD Pipelines & Cloud Edge Deployment'
+    ],
+    deliverables: [
+      'Production Web Application Codebase & Clean Git Repositories',
+      'Interactive Swagger / OpenAPI Documentation',
+      'Automated Unit, E2E & Load Testing Test Suites',
+      'Cloud SLA Infrastructure Provisioning & DevOps Documentation'
+    ],
+    metrics: [
+      { label: 'Uptime SLA', value: '99.99%' },
+      { label: 'Core Web Vitals Score', value: '98/100' },
+      { label: 'Web Applications Delivered', value: '50+' }
+    ]
   }
 ];
 
-export const PROJECTS_DATA: ProjectItem[] = [
-  
-  {
-    id: 'proj-1',
-    title: 'Global Energy Transition Summit',
-    category: 'conference',
-    categoryName: 'Global Conferences',
-    location: 'Geneva & Virtual Broadcast',
-    year: '2025',
-    client: 'International Renewable Consortium',
-    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80',
-    summary: 'A 4-day multilateral summit uniting 3,200 in-person dignitaries and 18,000 digital attendees across 42 countries.',
-    challenge: 'Coordination of strict heads-of-state diplomatic protocol alongside 6 simultaneous interpretation languages and zero-latency hybrid streaming.',
-    solution: 'Designed redundant fiber broadcast uplinks, deployed custom AI translation headsets, and managed biometric accreditation security gates.',
-    impactMetrics: ['3,200 In-Person VIPs', '6 Languages Interpreted', '100% Broadcast Uptime'],
-    status: 'published'
-  },
-  {
-    id: 'proj-2',
-    title: 'Grand Starline Waterfront Residences',
-    category: 'real-estate',
-    categoryName: 'Real Estate Development',
-    location: 'Lekki Coastal Corridor',
-    year: '2024',
-    client: 'Starline Luxury Properties Ltd',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-    summary: 'A master-planned luxury waterfront gated community consisting of 64 smart villas with internal solar microgrid and smart drainage.',
-    challenge: 'Developing low-impact coastal land requiring advanced soil stabilization and flood-resilient civil engineering.',
-    solution: 'Engineered specialized geotextile retaining barriers, automated water recycling systems, and architectural bioclimatic airflow designs.',
-    impactMetrics: ['64 Luxury Units', '100% Sold Out in Phase 1', '40% Energy Reduction'],
-    status: 'published'
-  },
-  {
-    id: 'proj-3',
-    title: '8.4 MW Industrial Agro-Processing Solar Plant',
-    category: 'solar',
-    categoryName: 'Solar Power Installation',
-    location: 'Ogun Industrial Zone',
-    year: '2024',
-    client: 'Crown Agro-Allied Industries',
-    image: 'https://images.unsplash.com/photo-1508873696983-2df5293cb32f?auto=format&fit=crop&w=800&q=80',
-    summary: 'Comprehensive ground-mount and rooftop hybrid solar installation powering heavy industrial flour mills and cold storage 24/7.',
-    challenge: 'Eliminating severe diesel generator expenditure during recurrent national grid voltage drops without interrupting milling lines.',
-    solution: 'Installed 18,500 bifacial solar modules coupled with 12MWh LiFePO4 industrial battery banks with sub-10ms microgrid transfer switches.',
-    impactMetrics: ['8.4 MWp Installed', '$1.4M Saved Annually', '11,200 Tons CO2 Cut'],
-    status: 'published'
-  },
-  {
-    id: 'proj-4',
-    title: 'Trans-Metropolitan Flyover & Drainage Interchange',
-    category: 'engineering',
-    categoryName: 'Engineering Services',
-    location: 'Central Capital Corridor',
-    year: '2023',
-    client: 'Federal Ministry of Works & Infrastructure',
-    image: 'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&w=800&q=80',
-    summary: 'Turnkey structural civil engineering and project supervision for a 1.8km dual-carriage elevated arterial flyover.',
-    challenge: 'Constructing heavily reinforced concrete piers amid dense commercial traffic corridors without shutting down daily traffic flows.',
-    solution: 'Adopted pre-cast post-tensioned segmental box girders erected during controlled night shifts with continuous laser deflection monitoring.',
-    impactMetrics: ['1.8km Flyover Span', 'Zero Lost Time Incidents', 'Completed 2 Months Early'],
-    status: 'published'
-  },
-  {
-    id: 'proj-5',
-    title: 'National Financial Switch Cloud & SecOps Backbone',
-    category: 'ict',
-    categoryName: 'ICT Solutions & Consultancy',
-    location: 'Regional Central Banking Data Center',
-    year: '2025',
-    client: 'Apex Financial Technologies Network',
-    image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80',
-    summary: 'End-to-end modernization of mission-critical banking switch infrastructure to PCI-DSS certified hybrid cloud architecture.',
-    challenge: 'Upgrading legacy payment routing processing over 8 million transactions daily without a single second of service disruption.',
-    solution: 'Designed active-active multi-region Kubernetes clusters with zero-trust network segmentation and continuous automated pen-testing.',
-    impactMetrics: ['14M Daily Transactions', '99.999% SLA Uptime', 'Sub-18ms Latency'],
-    status: 'published'
-  },
-  {
-    id: 'proj-6',
-    title: 'International Trade & Investment Exposition',
-    category: 'conference',
-    categoryName: 'Global Conferences',
-    location: 'Metropolitan Expo Center',
-    year: '2024',
-    client: 'Commonwealth Bilateral Chamber of Commerce',
-    image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=800&q=80',
-    summary: 'Three-day bilateral trade convention with 450 corporate exhibition booths, B2B deal rooms, and ministerial plenary sessions.',
-    challenge: 'Managing over 12,000 visitors per day, high-density RF communications for live broadcasting, and automated matchmaking.',
-    solution: 'Engineered a specialized NFC business matchmaking app, temporary multi-gigabit Wi-Fi 6 coverage, and curated breakout suites.',
-    impactMetrics: ['450 Exhibitor Pavilions', '$85M in MOUs Signed', '12,000+ Daily Visitors'],
-    status: 'published'
-  }
-];
+export const PROJECTS_DATA: ProjectItem[] = [];
 
-export const TESTIMONIALS_DATA: TestimonialItem[] = [
-  {
-    id: 'test-pepple',
-    name: 'Sir Richard Sodienye Pepple',
-    role: 'Supervisor',
-    organization: 'Technoville Innovation',
-    country: 'Nigeria',
-    serviceCategory: 'web-dev',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-    rating: 5,
-    quote: 'Great technical collaboration on web development projects.',
-    createdAt: '2025-01-15'
-  },
-  {
-    id: 'test-princewill',
-    name: 'Emmanuel Princewill',
-    role: 'Project Lead',
-    organization: 'RSU',
-    country: 'Nigeria',
-    serviceCategory: 'e-commerce',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
-    rating: 5,
-    quote: 'Delivered the Suxul e-commerce project with high quality.',
-    createdAt: '2025-02-20'
-  },
-  {
-    id: 't-1',
-    name: 'Dr. Alistair Sterling',
-    role: 'Secretary General',
-    organization: 'Global Sustainable Energy Alliance',
-    country: 'United Kingdom / Switzerland',
-    serviceCategory: 'conference',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
-    rating: 5,
-    quote: 'GreatStarGem delivered an impeccably organized international conference. From high-level diplomatic protocols to live multilingual interpretation and hybrid broadcasts, every single detail was executed with military precision.'
-  },
-  {
-    id: 't-2',
-    name: 'Engr. Folashade Adeyemi',
-    role: 'Chief Operating Officer',
-    organization: 'PrimeStone Agro-Processing Mills',
-    country: 'Nigeria',
-    serviceCategory: 'solar',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
-    rating: 5,
-    quote: 'Our factory previously suffered crippling diesel costs and production stoppages. GreatStarGem designed and installed an 8.4MW solar hybrid system that reduced our energy overhead by 68% while running our equipment flawlessly.'
-  },
-  {
-    id: 't-3',
-    name: 'Marcus Vance',
-    role: 'Principal Investment Director',
-    organization: 'Horizon Crest Capital Partners',
-    country: 'United States',
-    serviceCategory: 'real-estate',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
-    rating: 5,
-    quote: 'Investing in real estate developments managed by GreatStarGem has yielded exceptional ROI. Their construction quality, structural discipline, and adherence to environmental standards set a new benchmark in property development.'
-  },
-  {
-    id: 't-4',
-    name: 'Clara M. Lindqvist',
-    role: 'Head of Infrastructure Oversight',
-    organization: 'Nordic Trans-Development Fund',
-    country: 'Sweden',
-    serviceCategory: 'engineering',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80',
-    rating: 5,
-    quote: 'Their civil and structural engineering team displays uncompromising technical rigor. The flyover and drainage structural project was completed two months ahead of schedule with zero safety incidents.'
-  },
-  {
-    id: 't-5',
-    name: 'Tariq Al-Mansoor',
-    role: 'Chief Information Officer',
-    organization: 'FinTech Secure Gateway',
-    country: 'United Arab Emirates',
-    serviceCategory: 'ict',
-    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80',
-    rating: 5,
-    quote: 'GreatStarGem ICT revamped our core data architecture into a resilient hybrid cloud environment with zero-trust cybersecurity. Our system latency dropped 45% while handling unprecedented transaction spikes.'
-  }
-];
+export const TESTIMONIALS_DATA: TestimonialItem[] = [];
 
 export const COMPANY_STATS = [
   { value: '250+', label: 'Delivered Projects', subtext: 'Across all 5 divisions' },

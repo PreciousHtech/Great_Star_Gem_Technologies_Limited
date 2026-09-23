@@ -94,9 +94,14 @@ export default function AdminDashboard() {
               <div className="text-xs font-semibold text-white">
                 Logged in as: <span className="text-teal-300 font-mono font-bold">{adminSettings.username || 'Admin'}</span>
               </div>
-              <div className="text-[10px] text-slate-400">
-                Super Admin Access
-              </div>
+              <button
+                type="button"
+                onClick={() => handleTabChange(2)}
+                className="text-[10px] text-teal-400 hover:text-teal-300 hover:underline cursor-pointer block text-right ml-auto font-medium"
+                title="Change username or password in Security Settings"
+              >
+                Change Admin Name / Pass
+              </button>
             </div>
 
             {/* View Public Website */}

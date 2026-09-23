@@ -190,14 +190,28 @@ export async function ensureTablesExist(): Promise<{ success: boolean; message: 
         "username" TEXT NOT NULL DEFAULT 'admin',
         "email" TEXT NOT NULL DEFAULT 'admin@greatstargem.com',
         "password" TEXT,
-        "apiToken" TEXT,
-        "webhookSecret" TEXT,
+        "recoveryKey" TEXT,
         "sessionTimeoutMinutes" INTEGER NOT NULL DEFAULT 30,
         "publicApiEnabled" BOOLEAN NOT NULL DEFAULT true,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
 
       ALTER TABLE "AdminSetting" ADD COLUMN IF NOT EXISTS "password" TEXT;
+      ALTER TABLE "AdminSetting" ADD COLUMN IF NOT EXISTS "recoveryKey" TEXT;
+
+      -- Drop unused API token and webhook secret columns from Supabase
+      ALTER TABLE "AdminSetting" DROP COLUMN IF EXISTS "apiToken";
+      ALTER TABLE "AdminSetting" DROP COLUMN IF EXISTS "webhookSecret";
+
+      -- Ensure default row exists with a baseline recovery key so it is immediately visible in Supabase Table Editor
+      INSERT INTO "AdminSetting" (id, username, email, "recoveryKey", "updatedAt")
+      VALUES ('default', 'admin', 'admin@greatstargem.com', 'GreatStarGem-Recovery-Key-2026', CURRENT_TIMESTAMP)
+      ON CONFLICT (id) DO NOTHING;
+
+      -- If the row exists but recoveryKey was null, initialize it
+      UPDATE "AdminSetting"
+      SET "recoveryKey" = 'GreatStarGem-Recovery-Key-2026'
+      WHERE id = 'default' AND ("recoveryKey" IS NULL OR TRIM("recoveryKey") = '');
     `);
 
     await client.query('COMMIT');

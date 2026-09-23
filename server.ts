@@ -44,6 +44,76 @@ function getEnvAdminRecoveryKey(): string {
   );
 }
 
+/**
+ * Resolves the active Master Recovery Key.
+ * PRIORITY:
+ * 1. PostgreSQL Database (`AdminSetting` table column `recoveryKey` - editable directly in Supabase)
+ * 2. Environment variables (`ADMIN_RECOVERY_KEY`, `ADMIN_MASTER_KEY`, `ADMIN_RESET_KEY`)
+ * 3. Default fallback key: 'GreatStarGem-Recovery-Key-2026'
+ */
+async function getActiveRecoveryKey(): Promise<{ key: string; isCustom: boolean; source: 'database' | 'environment' | 'default' }> {
+  const pool = getPgPool();
+  const prisma = getPrisma();
+
+  // 1. Check PostgreSQL Database (Supabase)
+  if (pool) {
+    try {
+      const res = await pool.query(
+        `SELECT "recoveryKey" FROM "AdminSetting" 
+         WHERE "recoveryKey" IS NOT NULL AND TRIM("recoveryKey") != ''
+         ORDER BY CASE WHEN id = 'default' THEN 0 ELSE 1 END, "updatedAt" DESC 
+         LIMIT 1`
+      );
+      if (res.rows.length > 0 && res.rows[0].recoveryKey && String(res.rows[0].recoveryKey).trim().length > 0) {
+        return {
+          key: String(res.rows[0].recoveryKey).trim(),
+          isCustom: true,
+          source: 'database',
+        };
+      }
+    } catch (err) {
+      console.warn('PostgreSQL recovery key lookup warning:', err);
+    }
+  } else if (prisma) {
+    try {
+      const setting = await (prisma as any).adminSetting.findFirst({
+        where: {
+          recoveryKey: { not: null },
+        },
+        orderBy: [
+          { updatedAt: 'desc' },
+        ],
+      });
+      if (setting && setting.recoveryKey && String(setting.recoveryKey).trim().length > 0) {
+        return {
+          key: String(setting.recoveryKey).trim(),
+          isCustom: true,
+          source: 'database',
+        };
+      }
+    } catch (err) {
+      console.warn('Prisma recovery key lookup warning:', err);
+    }
+  }
+
+  // 2. Check environment variables
+  const envKey = process.env.ADMIN_RECOVERY_KEY || process.env.ADMIN_MASTER_KEY || process.env.ADMIN_RESET_KEY;
+  if (envKey && envKey.trim().length > 0) {
+    return {
+      key: envKey.trim(),
+      isCustom: true,
+      source: 'environment',
+    };
+  }
+
+  // 3. Fallback default
+  return {
+    key: 'GreatStarGem-Recovery-Key-2026',
+    isCustom: false,
+    source: 'default',
+  };
+}
+
 // In-memory rate limiting tracker for emergency recovery attempts (max 5 failed attempts per 15 min)
 const failedRecoveryAttempts = new Map<string, { count: number; lockedUntil: number }>();
 
@@ -261,9 +331,7 @@ async function startServer() {
     if (pool) {
       try {
         const result = await pool.query('SELECT * FROM "Project" ORDER BY "createdAt" DESC');
-        if (result.rows.length > 0) {
-          return res.json({ source: 'database', data: result.rows });
-        }
+        return res.json({ source: 'database', data: result.rows });
       } catch (err) {
         console.warn('PostgreSQL pool project query error:', err);
       }
@@ -271,7 +339,6 @@ async function startServer() {
 
     const prisma = getPrisma();
     if (!prisma) {
-      // Return static default if DB not configured yet
       return res.json({
         source: 'local',
         data: PROJECTS_DATA,
@@ -282,9 +349,6 @@ async function startServer() {
       const projects = await prisma.project.findMany({
         orderBy: { createdAt: 'desc' },
       });
-      if (projects.length === 0) {
-        return res.json({ source: 'local', data: PROJECTS_DATA });
-      }
       return res.json({ source: 'database', data: projects });
     } catch (err) {
       return res.json({ source: 'local_fallback', data: PROJECTS_DATA });
@@ -339,10 +403,48 @@ async function startServer() {
     }
   });
 
+  // Delete all projects
+  app.delete('/api/projects', async (req, res) => {
+    const pool = getPgPool();
+    const prisma = getPrisma();
+    let deletedCount = 0;
+
+    if (pool) {
+      try {
+        const result = await pool.query('DELETE FROM "Project"');
+        deletedCount = result.rowCount || 0;
+        return res.json({ success: true, count: deletedCount, message: `Successfully deleted all projects (${deletedCount} removed).` });
+      } catch (err: unknown) {
+        console.warn('PostgreSQL pool delete all projects warning:', err);
+      }
+    }
+
+    if (prisma) {
+      try {
+        const result = await prisma.project.deleteMany({});
+        return res.json({ success: true, count: result.count, message: `Successfully deleted all projects (${result.count} removed).` });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to delete all projects';
+        return res.status(500).json({ error: message });
+      }
+    }
+
+    return res.json({ success: true, count: 0, message: 'All projects cleared.' });
+  });
+
   app.delete('/api/projects/:id', async (req, res) => {
+    const pool = getPgPool();
+    if (pool) {
+      try {
+        await pool.query('DELETE FROM "Project" WHERE id = $1', [req.params.id]);
+        return res.json({ success: true, id: req.params.id });
+      } catch (err) {
+        console.warn('Pool delete project warning:', err);
+      }
+    }
     const prisma = getPrisma();
     if (!prisma) {
-      return res.status(503).json({ error: 'DATABASE_URL not configured' });
+      return res.json({ success: true, id: req.params.id });
     }
     try {
       await prisma.project.delete({
@@ -361,9 +463,7 @@ async function startServer() {
     if (pool) {
       try {
         const result = await pool.query('SELECT * FROM "Testimonial" ORDER BY "createdAt" DESC');
-        if (result.rows.length > 0) {
-          return res.json({ source: 'database', data: result.rows });
-        }
+        return res.json({ source: 'database', data: result.rows });
       } catch (err) {
         console.warn('PostgreSQL pool testimonials query error:', err);
       }
@@ -377,9 +477,6 @@ async function startServer() {
       const items = await prisma.testimonial.findMany({
         orderBy: { createdAt: 'desc' },
       });
-      if (items.length === 0) {
-        return res.json({ source: 'local', data: TESTIMONIALS_DATA });
-      }
       return res.json({ source: 'database', data: items });
     } catch (err) {
       return res.json({ source: 'local_fallback', data: TESTIMONIALS_DATA });
@@ -428,10 +525,48 @@ async function startServer() {
     }
   });
 
+  // Delete all testimonials
+  app.delete('/api/testimonials', async (req, res) => {
+    const pool = getPgPool();
+    const prisma = getPrisma();
+    let deletedCount = 0;
+
+    if (pool) {
+      try {
+        const result = await pool.query('DELETE FROM "Testimonial"');
+        deletedCount = result.rowCount || 0;
+        return res.json({ success: true, count: deletedCount, message: `Successfully deleted all testimonials (${deletedCount} removed).` });
+      } catch (err: unknown) {
+        console.warn('PostgreSQL pool delete all testimonials warning:', err);
+      }
+    }
+
+    if (prisma) {
+      try {
+        const result = await prisma.testimonial.deleteMany({});
+        return res.json({ success: true, count: result.count, message: `Successfully deleted all testimonials (${result.count} removed).` });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to delete all testimonials';
+        return res.status(500).json({ error: message });
+      }
+    }
+
+    return res.json({ success: true, count: 0, message: 'All testimonials cleared.' });
+  });
+
   app.delete('/api/testimonials/:id', async (req, res) => {
+    const pool = getPgPool();
+    if (pool) {
+      try {
+        await pool.query('DELETE FROM "Testimonial" WHERE id = $1', [req.params.id]);
+        return res.json({ success: true, id: req.params.id });
+      } catch (err) {
+        console.warn('Pool delete testimonial warning:', err);
+      }
+    }
     const prisma = getPrisma();
     if (!prisma) {
-      return res.status(503).json({ error: 'DATABASE_URL not configured' });
+      return res.json({ success: true, id: req.params.id });
     }
     try {
       await prisma.testimonial.delete({
@@ -444,8 +579,12 @@ async function startServer() {
     }
   });
 
+  // In-memory fallback inquiries list (starts completely empty)
+  let memoryInquiries: any[] = [];
+
   // Contact / Consultation Inquiries API
   app.post('/api/contact', async (req, res) => {
+    const pool = getPgPool();
     const prisma = getPrisma();
     const { fullName, email, phone, serviceCategory, company, message } = req.body;
 
@@ -453,45 +592,138 @@ async function startServer() {
       return res.status(400).json({ error: 'Name, email, and message are required fields.' });
     }
 
-    if (prisma) {
+    const inquiryId = `inq-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const newInquiry = {
+      id: inquiryId,
+      fullName: String(fullName).trim(),
+      email: String(email).trim(),
+      phone: phone ? String(phone).trim() : '',
+      serviceCategory: serviceCategory || 'general',
+      company: company ? String(company).trim() : '',
+      message: String(message).trim(),
+      status: 'new',
+      createdAt: new Date().toISOString(),
+    };
+
+    let storedInDb = false;
+
+    if (pool) {
       try {
-        const inquiry = await prisma.inquiry.create({
+        await pool.query(
+          `INSERT INTO "Inquiry" (id, "fullName", email, phone, "serviceCategory", company, message, status, "createdAt")
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+          [
+            newInquiry.id,
+            newInquiry.fullName,
+            newInquiry.email,
+            newInquiry.phone,
+            newInquiry.serviceCategory,
+            newInquiry.company,
+            newInquiry.message,
+            newInquiry.status
+          ]
+        );
+        storedInDb = true;
+      } catch (poolErr) {
+        console.warn('PostgreSQL pool inquiry save warning:', poolErr);
+      }
+    }
+
+    if (prisma && !storedInDb) {
+      try {
+        await prisma.inquiry.create({
           data: {
-            fullName,
-            email,
-            phone: phone || '',
-            serviceCategory: serviceCategory || 'general',
-            company: company || '',
-            message,
+            id: newInquiry.id,
+            fullName: newInquiry.fullName,
+            email: newInquiry.email,
+            phone: newInquiry.phone,
+            serviceCategory: newInquiry.serviceCategory,
+            company: newInquiry.company,
+            message: newInquiry.message,
+            status: newInquiry.status,
           },
         });
-        return res.status(201).json({ success: true, inquiry, storedInDb: true });
+        storedInDb = true;
       } catch (err) {
         console.error('Failed to save inquiry to database:', err);
       }
     }
 
-    return res.status(200).json({
+    // Always maintain memory fallback
+    memoryInquiries.unshift(newInquiry);
+
+    return res.status(201).json({
       success: true,
+      inquiry: newInquiry,
+      storedInDb,
       message: 'Consultation request received successfully.',
-      storedInDb: Boolean(prisma),
     });
   });
 
   app.get('/api/inquiries', async (req, res) => {
+    const pool = getPgPool();
+    if (pool) {
+      try {
+        const result = await pool.query('SELECT * FROM "Inquiry" ORDER BY "createdAt" DESC');
+        return res.json({ data: result.rows, source: 'database' });
+      } catch (err) {
+        console.warn('PostgreSQL pool inquiries query warning:', err);
+      }
+    }
+
     const prisma = getPrisma();
-    if (!prisma) {
-      return res.json({ data: [] });
+    if (prisma) {
+      try {
+        const inquiries = await prisma.inquiry.findMany({
+          orderBy: { createdAt: 'desc' },
+        });
+        return res.json({ data: inquiries, source: 'database' });
+      } catch (err) {
+        console.error('Failed to fetch inquiries from Prisma:', err);
+      }
     }
-    try {
-      const inquiries = await prisma.inquiry.findMany({
-        orderBy: { createdAt: 'desc' },
-      });
-      return res.json({ data: inquiries });
-    } catch (err) {
-      console.error('Failed to fetch inquiries:', err);
-      return res.json({ data: [] });
+
+    return res.json({ data: memoryInquiries, source: 'memory' });
+  });
+
+  // Admin delete inquiry endpoint
+  app.delete('/api/inquiries/:id', async (req, res) => {
+    const { id } = req.params;
+    let deletedFromDb = false;
+
+    const pool = getPgPool();
+    if (pool) {
+      try {
+        const result = await pool.query('DELETE FROM "Inquiry" WHERE id = $1', [id]);
+        if ((result.rowCount || 0) > 0) {
+          deletedFromDb = true;
+        }
+      } catch (poolErr) {
+        console.warn('PostgreSQL pool inquiry deletion warning:', poolErr);
+      }
     }
+
+    const prisma = getPrisma();
+    if (prisma && !deletedFromDb) {
+      try {
+        await prisma.inquiry.delete({
+          where: { id },
+        });
+        deletedFromDb = true;
+      } catch (err) {
+        // Record might have already been removed or only existed in memory
+      }
+    }
+
+    // Always delete from memory fallback list
+    memoryInquiries = memoryInquiries.filter((inq) => inq.id !== id);
+
+    return res.json({
+      success: true,
+      id,
+      deletedFromDb,
+      message: 'Inquiry deleted successfully.',
+    });
   });
 
   // Admin Authentication Status
@@ -500,14 +732,12 @@ async function startServer() {
       const activeCreds = await getActiveAdminCredentials();
       return res.json({
         success: true,
-        username: activeCreds.username,
         isCustomPassword: activeCreds.isCustomPassword,
         hasEnvDefault: Boolean(process.env.ADMIN_PASSWORD),
       });
     } catch (err) {
       return res.json({
         success: true,
-        username: getEnvDefaultUsername(),
         isCustomPassword: false,
         hasEnvDefault: false,
       });
@@ -809,13 +1039,101 @@ async function startServer() {
     });
   });
 
+  // Update Master Recovery Key directly in PostgreSQL / Supabase
+  app.post('/api/admin/update-recovery-key', async (req, res) => {
+    try {
+      const { currentPassword, newRecoveryKey } = req.body;
+
+      if (!currentPassword || typeof currentPassword !== 'string') {
+        return res.status(400).json({
+          success: false,
+          message: 'Current administrator password is required to update Master Recovery Key.',
+        });
+      }
+
+      if (!newRecoveryKey || typeof newRecoveryKey !== 'string' || newRecoveryKey.trim().length < 8) {
+        return res.status(400).json({
+          success: false,
+          message: 'New Master Recovery Key must be at least 8 characters long.',
+        });
+      }
+
+      const activeCreds = await getActiveAdminCredentials();
+      const isCurrentPasswordValid = await verifyPassword(currentPassword, activeCreds.passwordHash);
+      if (!isCurrentPasswordValid) {
+        return res.status(403).json({
+          success: false,
+          message: 'Current password verification failed. Please enter your active administrator password.',
+        });
+      }
+
+      const trimmedKey = newRecoveryKey.trim();
+
+      // Persist to PostgreSQL (Supabase)
+      const pool = getPgPool();
+      const prisma = getPrisma();
+      let dbSaved = false;
+
+      if (pool) {
+        try {
+          await pool.query(
+            `INSERT INTO "AdminSetting" (id, "recoveryKey", "updatedAt")
+             VALUES ('default', $1, NOW())
+             ON CONFLICT (id) DO UPDATE SET "recoveryKey" = EXCLUDED."recoveryKey", "updatedAt" = NOW()`,
+            [trimmedKey]
+          );
+          dbSaved = true;
+        } catch (poolErr) {
+          console.warn('PostgreSQL pool recovery key update warning:', poolErr);
+        }
+      }
+
+      if (prisma && !dbSaved) {
+        try {
+          await (prisma as any).adminSetting.upsert({
+            where: { id: 'default' },
+            update: {
+              recoveryKey: trimmedKey,
+              updatedAt: new Date(),
+            },
+            create: {
+              id: 'default',
+              username: activeCreds.username,
+              password: activeCreds.passwordHash,
+              recoveryKey: trimmedKey,
+              updatedAt: new Date(),
+            },
+          });
+          dbSaved = true;
+        } catch (err) {
+          console.error('Failed to update recovery key in Prisma:', err);
+        }
+      }
+
+      return res.json({
+        success: true,
+        message: dbSaved
+          ? 'Master Recovery Key successfully updated in Supabase database ("AdminSetting" table). You can also edit it anytime directly in your Supabase dashboard.'
+          : 'Master Recovery Key updated successfully.',
+        source: 'database',
+      });
+    } catch (err) {
+      console.error('Update recovery key error:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error while updating Master Recovery Key.',
+      });
+    }
+  });
+
   // Recovery Status endpoint - provides public info on whether recovery is configured
-  app.get('/api/admin/recovery-status', (req, res) => {
-    const isCustomRecoveryKey = Boolean(process.env.ADMIN_RECOVERY_KEY || process.env.ADMIN_MASTER_KEY || process.env.ADMIN_RESET_KEY);
+  app.get('/api/admin/recovery-status', async (req, res) => {
+    const activeRecovery = await getActiveRecoveryKey();
     res.json({
       enabled: true,
-      hasCustomKey: isCustomRecoveryKey,
-      defaultKeyHint: isCustomRecoveryKey ? undefined : 'GreatStarGem-Recovery-Key-2026',
+      hasCustomKey: activeRecovery.isCustom,
+      source: activeRecovery.source,
+      defaultKeyHint: activeRecovery.isCustom ? undefined : 'GreatStarGem-Recovery-Key-2026',
     });
   });
 
@@ -857,8 +1175,9 @@ async function startServer() {
       });
     }
 
-    // 3. Verify Master Recovery Key
-    const configuredMasterKey = getEnvAdminRecoveryKey();
+    // 3. Verify Master Recovery Key (Checked against Supabase table, Environment Variables, or Default)
+    const activeRecovery = await getActiveRecoveryKey();
+    const configuredMasterKey = activeRecovery.key;
     const cleanKeyInput = recoveryKey.trim();
     const cleanConfigured = configuredMasterKey.trim();
 

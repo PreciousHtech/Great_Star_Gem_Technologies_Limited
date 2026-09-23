@@ -7,7 +7,7 @@ import { useData } from '../../context/DataContext';
 import { TestimonialItem } from '../../types';
 
 export default function TestimonialsTab() {
-  const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial, resetTestimonials } = useData();
+  const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial, deleteAllTestimonials, resetTestimonials } = useData();
 
   // "UPLOAD NEW TESTIMONIAL" Form states
   const [clientName, setClientName] = useState('');
@@ -22,6 +22,10 @@ export default function TestimonialsTab() {
   const [editRoleCompany, setEditRoleCompany] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
   const [editQuote, setEditQuote] = useState('');
+
+  // Delete All Modal states
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
 
   // Delete Confirmation state
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -238,7 +242,7 @@ export default function TestimonialsTab() {
 
       {/* BOTTOM SECTION: ACTIVE TESTIMONIALS List */}
       <section className="space-y-4" id="active-testimonials-section">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif]">
               ACTIVE TESTIMONIALS
@@ -247,13 +251,37 @@ export default function TestimonialsTab() {
               {testimonials.length} Endorsements Live
             </span>
           </div>
-          <span className="text-xs text-slate-400 font-mono hidden sm:inline">
-            Synched to Public Homepage
-          </span>
+
+          <div className="flex items-center gap-3">
+            {testimonials.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteAllModal(true)}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-red-950/40 border border-red-800/60 hover:bg-red-900/60 text-red-300 transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                id="admin-delete-all-testimonials-btn"
+                title="Delete all testimonials at once"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                <span>Delete All</span>
+              </button>
+            )}
+            <span className="text-xs text-slate-400 font-mono hidden sm:inline">
+              Synched to Public Homepage
+            </span>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {testimonials.map((item) => (
+        {testimonials.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 bg-slate-900/40 border border-dashed border-slate-800 rounded-2xl p-8 space-y-2">
+            <Quote className="w-8 h-8 text-slate-600 mx-auto" />
+            <h4 className="text-sm font-bold text-slate-200">No testimonials available</h4>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              No client testimonials have been uploaded yet. Use the form above to add an endorsement.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {testimonials.map((item) => (
             <div
               key={item.id}
               className="bg-slate-950 border border-slate-800/90 rounded-2xl p-6 hover:border-teal-500/40 transition-all shadow-md relative flex flex-col justify-between group"
@@ -323,7 +351,8 @@ export default function TestimonialsTab() {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </section>
 
       {/* Delete Confirmation Modal */}
@@ -448,6 +477,74 @@ export default function TestimonialsTab() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Delete All Testimonials Confirmation */}
+      {showDeleteAllModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => !isDeletingAll && setShowDeleteAllModal(false)}
+        >
+          <div 
+            className="w-full max-w-md bg-slate-900 border border-red-900/50 rounded-2xl shadow-2xl p-6 text-slate-100 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+            id="delete-all-testimonials-modal"
+          >
+            <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div className="text-center space-y-1.5">
+              <h3 className="text-base font-bold text-white">Delete All Testimonials?</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Are you sure you want to permanently delete all <strong className="text-white">{testimonials.length} testimonial(s)</strong> at once?
+              </p>
+              <p className="text-[11px] text-slate-500">
+                This will remove all client endorsements from both your database and the public website review carousel.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeletingAll}
+                onClick={() => setShowDeleteAllModal(false)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingAll}
+                onClick={async () => {
+                  setIsDeletingAll(true);
+                  try {
+                    const res = await deleteAllTestimonials();
+                    setShowDeleteAllModal(false);
+                    setStatusMessage(res.message || 'All testimonials have been deleted.');
+                    setTimeout(() => setStatusMessage(null), 4000);
+                  } finally {
+                    setIsDeletingAll(false);
+                  }
+                }}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-md shadow-red-600/30"
+                id="confirm-delete-all-testimonials-btn"
+              >
+                {isDeletingAll ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting All...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Confirm Delete All</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

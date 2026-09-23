@@ -64,8 +64,7 @@ model AdminSetting {
   username              String   @default("admin")
   email                 String   @default("admin@greatstargem.com")
   password              String?  @default("admin123")
-  apiToken              String?
-  webhookSecret         String?
+  recoveryKey           String?
   sessionTimeoutMinutes Int      @default(30)
   publicApiEnabled      Boolean  @default(true)
   updatedAt             DateTime @updatedAt
