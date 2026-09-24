@@ -115,7 +115,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
         <button
           type="button"
           onClick={() => navigateTo('public')}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-purple-300 transition-colors cursor-pointer bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-teal-300 transition-colors cursor-pointer bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800"
           id="admin-return-home-btn"
         >
           <ArrowLeft className="w-4 h-4" />

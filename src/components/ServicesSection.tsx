@@ -144,46 +144,7 @@ export default function ServicesSection({
         team: 'Principal Enterprise Architect + Cyber Defence Team'
       }
     },
-    'e-commerce': {
-      standard: {
-        scopeTitle: 'Custom Storefront & Payment Integration (Up to 500 SKUs)',
-        timeline: '3 - 5 Weeks Deployment',
-        deliverables: ['Custom Product Catalog', 'Stripe / Paystack Payment Gateway', 'Order & Inventory Automation'],
-        team: 'Full-Stack Developer + UI/UX Designer'
-      },
-      enterprise: {
-        scopeTitle: 'Multi-Vendor Marketplace & Omnichannel Commerce',
-        timeline: '2 - 4 Months Phased Architecture',
-        deliverables: ['Headless Commerce Engine', 'Multi-Currency Settlement', 'Warehouse Real-Time Sync', 'Custom Checkout Funnels'],
-        team: 'Lead Solution Architect + 3 Full-Stack Engineers'
-      },
-      flagship: {
-        scopeTitle: 'Global High-Throughput E-Commerce Platform (100k+ Transactions/day)',
-        timeline: '4 - 8 Months Microservices Scale',
-        deliverables: ['Elastic Cloud Infrastructure', 'AI Recommendation Engine', 'Automated Fraud Defense', '99.99% Uptime SLA'],
-        team: 'Principal Systems Architect + SRE & Security Engineers'
-      }
-    },
-    'web-dev': {
-      standard: {
-        scopeTitle: 'Modern Web Application & API Portal',
-        timeline: '3 - 6 Weeks Agile Sprints',
-        deliverables: ['React / TypeScript SPA', 'REST / GraphQL API Endpoints', 'Responsive Mobile-First UI'],
-        team: 'Frontend Specialist + Backend Engineer'
-      },
-      enterprise: {
-        scopeTitle: 'Enterprise SaaS Platform with RBAC & Analytics',
-        timeline: '2 - 5 Months Production Build',
-        deliverables: ['Multi-Tenant Architecture', 'Real-Time Dashboard', 'SOC-2 Compliance Prep', 'Automated CI/CD Pipeline'],
-        team: 'Product Engineer + Cloud Architect + QA Lead'
-      },
-      flagship: {
-        scopeTitle: 'Distributed Microservices & Real-Time Data Pipeline',
-        timeline: '6 - 12 Months Enterprise Modernization',
-        deliverables: ['Event-Driven Kafka Architecture', 'Sub-millisecond Edge Delivery', 'Global Disaster Recovery', '24/7 Monitored Telemetry'],
-        team: 'Engineering Director + Dedicated Full-Stack Pod'
-      }
-    },
+    
     'web-application': {
       standard: {
         scopeTitle: 'Custom Web Application & Operational Portal',

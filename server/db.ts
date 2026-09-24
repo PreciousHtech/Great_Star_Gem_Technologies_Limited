@@ -77,7 +77,7 @@ export async function testConnection(): Promise<{
   if (!isDatabaseConfigured()) {
     return {
       connected: false,
-      message: 'DATABASE_URL environment variable is not configured. Add it in AI Studio Settings / Secrets panel.',
+      message: 'DATABASE_URL environment variable is not configured.',
     };
   }
 

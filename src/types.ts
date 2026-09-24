@@ -4,9 +4,7 @@ export type ServiceCategory =
   | 'solar' 
   | 'engineering' 
   | 'ict'
-  | 'web-dev'
   | 'web-application'
-  | 'e-commerce';
 
 export interface ServiceItem {
   id: ServiceCategory;

@@ -44,13 +44,9 @@ function getEnvAdminRecoveryKey(): string {
   );
 }
 
-/**
- * Resolves the active Master Recovery Key.
- * PRIORITY:
- * 1. PostgreSQL Database (`AdminSetting` table column `recoveryKey` - editable directly in Supabase)
- * 2. Environment variables (`ADMIN_RECOVERY_KEY`, `ADMIN_MASTER_KEY`, `ADMIN_RESET_KEY`)
- * 3. Default fallback key: 'GreatStarGem-Recovery-Key-2026'
- */
+
+// Resolves the active Master Recovery Key.
+ 
 async function getActiveRecoveryKey(): Promise<{ key: string; isCustom: boolean; source: 'database' | 'environment' | 'default' }> {
   const pool = getPgPool();
   const prisma = getPrisma();
