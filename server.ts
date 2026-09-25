@@ -13,6 +13,13 @@ import {
   readAuthCache, 
   writeAuthCache
 } from './server/auth';
+import {
+  resolveSupabaseConfig,
+  getSupabaseClient,
+  ensureBucketExists,
+  uploadBufferToSupabase,
+  writeStorageCache
+} from './server/storage';
 dotenv.config();
 
 // Initial fallback values from environment variables if provided in .env
@@ -35,6 +42,7 @@ function getEnvDefaultUsername(): string {
   );
 }
 
+/* [UNUSED - Candidate for removal]:
 function getEnvAdminRecoveryKey(): string {
   return (
     process.env.ADMIN_RECOVERY_KEY ||
@@ -43,6 +51,7 @@ function getEnvAdminRecoveryKey(): string {
     'GreatStarGem-Recovery-Key-2026'
   );
 }
+*/
 
 
 // Resolves the active Master Recovery Key.
@@ -217,7 +226,8 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
-  app.use(express.json());
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
   // Proactively ensure database tables and columns (including password) exist on boot
   ensureTablesExist().catch((err) => {
@@ -225,7 +235,7 @@ async function startServer() {
   });
 
   // Health endpoint
-  app.get('/api/health', (req, res) => {
+  app.get('/api/health', (_req, res) => {
     res.json({
       status: 'ok',
       service: 'Great Star Gem Enterprise Backend',
@@ -235,7 +245,7 @@ async function startServer() {
   });
 
   // DB Connection status & diagnostic
-  app.get('/api/db/status', async (req, res) => {
+  app.get('/api/db/status', async (_req, res) => {
     try {
       const result = await testConnection();
       res.json(result);
@@ -246,63 +256,110 @@ async function startServer() {
   });
 
   // DB Sync / Initialize Tables & Seed Default Data
-  app.post('/api/db/init', async (req, res) => {
+  app.post('/api/db/init', async (_req, res) => {
     try {
       const initResult = await ensureTablesExist();
       if (!initResult.success) {
         return res.status(400).json(initResult);
       }
 
+      const pool = getPgPool();
       const prisma = getPrisma();
       let seeded = { projects: 0, testimonials: 0 };
 
-      if (prisma) {
-        // Seed projects if empty
-        const projectCount = await prisma.project.count();
-        if (projectCount === 0) {
-          for (const item of PROJECTS_DATA) {
-            await prisma.project.create({
-              data: {
-                id: item.id,
-                title: item.title,
-                category: item.category,
-                categoryName: item.categoryName,
-                location: item.location || '',
-                year: item.year,
-                client: item.client,
-                image: item.image,
-                summary: item.summary,
-                challenge: item.challenge || '',
-                solution: item.solution || '',
-                impactMetrics: item.impactMetrics || [],
-                liveUrl: item.liveUrl || '',
-                githubUrl: item.githubUrl || '',
-                status: item.status || 'published',
-              },
-            });
-            seeded.projects++;
+      // 1. Try seeding via direct pg pool
+      if (pool) {
+        try {
+          const pCountRes = await pool.query('SELECT count(*)::int as c FROM "Project"');
+          const pCount = pCountRes.rows[0]?.c || 0;
+          if (pCount === 0) {
+            for (const item of PROJECTS_DATA) {
+              await pool.query(`
+                INSERT INTO "Project" (
+                  id, title, category, "categoryName", location, year, client, image, summary,
+                  challenge, solution, "impactMetrics", "liveUrl", "githubUrl", "videoUrl", status, "createdAt", "updatedAt"
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                ON CONFLICT (id) DO NOTHING;
+              `, [
+                item.id, item.title, item.category, item.categoryName, item.location || '',
+                item.year, item.client, item.image, item.summary, item.challenge || '',
+                item.solution || '', item.impactMetrics || [], item.liveUrl || '',
+                item.githubUrl || '', item.videoUrl || '', item.status || 'published'
+              ]);
+              seeded.projects++;
+            }
           }
-        }
 
-        // Seed testimonials if empty
-        const testimonialCount = await prisma.testimonial.count();
-        if (testimonialCount === 0) {
-          for (const t of TESTIMONIALS_DATA) {
-            await prisma.testimonial.create({
-              data: {
-                id: t.id,
-                name: t.name,
-                role: t.role,
-                organization: t.organization,
-                country: t.country || '',
-                serviceCategory: t.serviceCategory || 'conference',
-                avatar: t.avatar || '',
-                rating: t.rating || 5,
-                quote: t.quote,
-              },
-            });
-            seeded.testimonials++;
+          const tCountRes = await pool.query('SELECT count(*)::int as c FROM "Testimonial"');
+          const tCount = tCountRes.rows[0]?.c || 0;
+          if (tCount === 0) {
+            for (const t of TESTIMONIALS_DATA) {
+              await pool.query(`
+                INSERT INTO "Testimonial" (
+                  id, name, role, organization, country, "serviceCategory", avatar, rating, quote, "createdAt", "updatedAt"
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                ON CONFLICT (id) DO NOTHING;
+              `, [
+                t.id, t.name, t.role, t.organization, t.country || 'Nigeria',
+                t.serviceCategory || 'conference', t.avatar || '', t.rating || 5, t.quote
+              ]);
+              seeded.testimonials++;
+            }
           }
+        } catch (poolSeedErr) {
+          console.warn('PostgreSQL pool seeding warning:', poolSeedErr);
+        }
+      } else if (prisma) {
+        // Fallback to Prisma if pool was not active
+        try {
+          const projectCount = await prisma.project.count();
+          if (projectCount === 0) {
+            for (const item of PROJECTS_DATA) {
+              await prisma.project.create({
+                data: {
+                  id: item.id,
+                  title: item.title,
+                  category: item.category,
+                  categoryName: item.categoryName,
+                  location: item.location || '',
+                  year: item.year,
+                  client: item.client,
+                  image: item.image,
+                  summary: item.summary,
+                  challenge: item.challenge || '',
+                  solution: item.solution || '',
+                  impactMetrics: item.impactMetrics || [],
+                  liveUrl: item.liveUrl || '',
+                  githubUrl: item.githubUrl || '',
+                  videoUrl: item.videoUrl || '',
+                  status: item.status || 'published',
+                },
+              });
+              seeded.projects++;
+            }
+          }
+
+          const testimonialCount = await prisma.testimonial.count();
+          if (testimonialCount === 0) {
+            for (const t of TESTIMONIALS_DATA) {
+              await prisma.testimonial.create({
+                data: {
+                  id: t.id,
+                  name: t.name,
+                  role: t.role,
+                  organization: t.organization,
+                  country: t.country || '',
+                  serviceCategory: t.serviceCategory || 'conference',
+                  avatar: t.avatar || '',
+                  rating: t.rating || 5,
+                  quote: t.quote,
+                },
+              });
+              seeded.testimonials++;
+            }
+          }
+        } catch (prismaSeedErr) {
+          console.warn('Prisma seeding warning:', prismaSeedErr);
         }
       }
 
@@ -322,7 +379,7 @@ async function startServer() {
   });
 
   // Projects API
-  app.get('/api/projects', async (req, res) => {
+  app.get('/api/projects', async (_req, res) => {
     const pool = getPgPool();
     if (pool) {
       try {
@@ -352,6 +409,46 @@ async function startServer() {
   });
 
   app.post('/api/projects', async (req, res) => {
+    const pool = getPgPool();
+    const id = req.body.id || `proj-${Date.now()}`;
+    const {
+      title,
+      category,
+      categoryName,
+      location = '',
+      year = new Date().getFullYear().toString(),
+      client = 'Confidential Client',
+      image = '',
+      summary = '',
+      challenge = '',
+      solution = '',
+      impactMetrics = [],
+      liveUrl = '',
+      githubUrl = '',
+      videoUrl = '',
+      status = 'published',
+    } = req.body;
+
+    if (pool) {
+      try {
+        const query = `
+          INSERT INTO "Project" (
+            id, title, category, "categoryName", location, year, client, image, summary,
+            challenge, solution, "impactMetrics", "liveUrl", "githubUrl", "videoUrl", status, "createdAt", "updatedAt"
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING *;
+        `;
+        const values = [
+          id, title, category, categoryName || category, location, year, client, image, summary,
+          challenge, solution, impactMetrics, liveUrl, githubUrl, videoUrl, status
+        ];
+        const result = await pool.query(query, values);
+        return res.status(201).json(result.rows[0]);
+      } catch (err: unknown) {
+        console.warn('PostgreSQL pool create project warning:', err);
+      }
+    }
+
     const prisma = getPrisma();
     if (!prisma) {
       return res.status(503).json({ error: 'DATABASE_URL not configured' });
@@ -359,6 +456,7 @@ async function startServer() {
     try {
       const newProject = await prisma.project.create({
         data: {
+          id,
           title: req.body.title,
           category: req.body.category,
           categoryName: req.body.categoryName || req.body.category,
@@ -372,6 +470,7 @@ async function startServer() {
           impactMetrics: req.body.impactMetrics || [],
           liveUrl: req.body.liveUrl || '',
           githubUrl: req.body.githubUrl || '',
+          videoUrl: req.body.videoUrl || '',
           status: req.body.status || 'published',
         },
       });
@@ -383,6 +482,35 @@ async function startServer() {
   });
 
   app.put('/api/projects/:id', async (req, res) => {
+    const pool = getPgPool();
+    if (pool) {
+      try {
+        const fields = req.body;
+        const validCols = [
+          'title', 'category', 'categoryName', 'location', 'year', 'client',
+          'image', 'summary', 'challenge', 'solution', 'impactMetrics',
+          'liveUrl', 'githubUrl', 'videoUrl', 'status'
+        ];
+        const keys = Object.keys(fields).filter(k => validCols.includes(k));
+        if (keys.length > 0) {
+          const setClauses = keys.map((key, idx) => `"${key}" = $${idx + 2}`).join(', ');
+          const values = [req.params.id, ...keys.map(k => fields[k])];
+          const query = `
+            UPDATE "Project"
+            SET ${setClauses}, "updatedAt" = CURRENT_TIMESTAMP
+            WHERE id = $1
+            RETURNING *;
+          `;
+          const result = await pool.query(query, values);
+          if (result.rows.length > 0) {
+            return res.json(result.rows[0]);
+          }
+        }
+      } catch (err) {
+        console.warn('PostgreSQL pool update project warning:', err);
+      }
+    }
+
     const prisma = getPrisma();
     if (!prisma) {
       return res.status(503).json({ error: 'DATABASE_URL not configured' });
@@ -400,7 +528,7 @@ async function startServer() {
   });
 
   // Delete all projects
-  app.delete('/api/projects', async (req, res) => {
+  app.delete('/api/projects', async (_req, res) => {
     const pool = getPgPool();
     const prisma = getPrisma();
     let deletedCount = 0;
@@ -453,8 +581,116 @@ async function startServer() {
     }
   });
 
+  // ==========================================
+  // SUPABASE STORAGE (MEDIA CDN) API ROUTES
+  // ==========================================
+
+  app.get('/api/storage/status', async (_req, res) => {
+    const config = resolveSupabaseConfig();
+    const client = getSupabaseClient();
+    let bucketExists = false;
+    let bucketMessage = '';
+
+    if (client) {
+      try {
+        const check = await ensureBucketExists(config.bucket);
+        bucketExists = check.success;
+        bucketMessage = check.message;
+      } catch (err: unknown) {
+        bucketMessage = err instanceof Error ? err.message : String(err);
+      }
+    }
+
+    return res.json({
+      configured: Boolean(client && config.url),
+      url: config.url,
+      projectRef: config.projectRef,
+      bucket: config.bucket,
+      hasKey: Boolean(config.key),
+      source: config.source,
+      bucketExists,
+      bucketMessage,
+    });
+  });
+
+  app.post('/api/storage/config', async (req, res) => {
+    const { url, key, bucket } = req.body;
+    writeStorageCache({
+      url: url ? String(url).trim() : undefined,
+      key: key ? String(key).trim() : undefined,
+      bucket: bucket ? String(bucket).trim() : undefined,
+    });
+
+    const updatedConfig = resolveSupabaseConfig();
+    const client = getSupabaseClient();
+    let bucketCheck = { success: false, message: 'Supabase client not active' };
+    if (client) {
+      bucketCheck = await ensureBucketExists(updatedConfig.bucket);
+    }
+
+    return res.json({
+      success: true,
+      message: 'Storage configuration updated successfully.',
+      configured: Boolean(client && updatedConfig.url),
+      bucketExists: bucketCheck.success,
+      bucketMessage: bucketCheck.message,
+      config: {
+        url: updatedConfig.url,
+        bucket: updatedConfig.bucket,
+        hasKey: Boolean(updatedConfig.key),
+        projectRef: updatedConfig.projectRef,
+      },
+    });
+  });
+
+  app.post('/api/storage/upload', async (req, res) => {
+    const { dataUrl, fileName, folder = 'media' } = req.body;
+    if (!dataUrl || !fileName) {
+      return res.status(400).json({ error: 'dataUrl and fileName are required for upload' });
+    }
+
+    const client = getSupabaseClient();
+    const config = resolveSupabaseConfig();
+
+    const matches = dataUrl.match(/^data:([a-zA-Z0-9-+/]+);base64,(.+)$/);
+    if (!matches) {
+      return res.status(400).json({ error: 'Invalid data URL format. Expected base64 data URL.' });
+    }
+
+    const mimeType = matches[1];
+    const base64Data = matches[2];
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    if (client && config.url) {
+      const uploadResult = await uploadBufferToSupabase(buffer, fileName, mimeType, folder);
+      if (uploadResult.success && uploadResult.url) {
+        return res.json({
+          success: true,
+          url: uploadResult.url,
+          path: uploadResult.path,
+          bucket: uploadResult.bucket,
+          storageType: 'supabase',
+        });
+      } else {
+        return res.status(502).json({
+          success: false,
+          error: uploadResult.error || 'Failed to upload file to Supabase Storage bucket.',
+        });
+      }
+    }
+
+    // Inform admin that Supabase API key is needed
+    return res.status(503).json({
+      success: false,
+      error: 'Supabase Storage requires an API key (SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY). Enter it in the Database tab to enable automated cloud uploads.',
+      requiresKey: true,
+      projectRef: config.projectRef,
+      supabaseUrl: config.url,
+    });
+  });
+
   // Testimonials API
-  app.get('/api/testimonials', async (req, res) => {
+  app.get('/api/testimonials', async (_req, res) => {
     const pool = getPgPool();
     if (pool) {
       try {
@@ -480,6 +716,34 @@ async function startServer() {
   });
 
   app.post('/api/testimonials', async (req, res) => {
+    const pool = getPgPool();
+    const id = req.body.id || `test-${Date.now()}`;
+    const {
+      name,
+      role,
+      organization = '',
+      country = 'Nigeria',
+      serviceCategory = 'conference',
+      avatar = '',
+      rating = 5,
+      quote,
+    } = req.body;
+
+    if (pool) {
+      try {
+        const query = `
+          INSERT INTO "Testimonial" (
+            id, name, role, organization, country, "serviceCategory", avatar, rating, quote, "createdAt", "updatedAt"
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING *;
+        `;
+        const result = await pool.query(query, [id, name, role, organization, country, serviceCategory, avatar, Number(rating) || 5, quote]);
+        return res.status(201).json(result.rows[0]);
+      } catch (err) {
+        console.warn('PostgreSQL pool create testimonial warning:', err);
+      }
+    }
+
     const prisma = getPrisma();
     if (!prisma) {
       return res.status(503).json({ error: 'DATABASE_URL not configured' });
@@ -487,6 +751,7 @@ async function startServer() {
     try {
       const created = await prisma.testimonial.create({
         data: {
+          id,
           name: req.body.name,
           role: req.body.role,
           organization: req.body.organization,
@@ -505,6 +770,31 @@ async function startServer() {
   });
 
   app.put('/api/testimonials/:id', async (req, res) => {
+    const pool = getPgPool();
+    if (pool) {
+      try {
+        const fields = req.body;
+        const validCols = ['name', 'role', 'organization', 'country', 'serviceCategory', 'avatar', 'rating', 'quote'];
+        const keys = Object.keys(fields).filter(k => validCols.includes(k));
+        if (keys.length > 0) {
+          const setClauses = keys.map((key, idx) => `"${key}" = $${idx + 2}`).join(', ');
+          const values = [req.params.id, ...keys.map(k => fields[k])];
+          const query = `
+            UPDATE "Testimonial"
+            SET ${setClauses}, "updatedAt" = CURRENT_TIMESTAMP
+            WHERE id = $1
+            RETURNING *;
+          `;
+          const result = await pool.query(query, values);
+          if (result.rows.length > 0) {
+            return res.json(result.rows[0]);
+          }
+        }
+      } catch (err) {
+        console.warn('PostgreSQL pool update testimonial warning:', err);
+      }
+    }
+
     const prisma = getPrisma();
     if (!prisma) {
       return res.status(503).json({ error: 'DATABASE_URL not configured' });
@@ -522,7 +812,7 @@ async function startServer() {
   });
 
   // Delete all testimonials
-  app.delete('/api/testimonials', async (req, res) => {
+  app.delete('/api/testimonials', async (_req, res) => {
     const pool = getPgPool();
     const prisma = getPrisma();
     let deletedCount = 0;
@@ -656,7 +946,7 @@ async function startServer() {
     });
   });
 
-  app.get('/api/inquiries', async (req, res) => {
+  app.get('/api/inquiries', async (_req, res) => {
     const pool = getPgPool();
     if (pool) {
       try {
@@ -723,7 +1013,7 @@ async function startServer() {
   });
 
   // Admin Authentication Status
-  app.get('/api/admin/auth-status', async (req, res) => {
+  app.get('/api/admin/auth-status', async (_req, res) => {
     try {
       const activeCreds = await getActiveAdminCredentials();
       return res.json({
@@ -1123,7 +1413,7 @@ async function startServer() {
   });
 
   // Recovery Status endpoint - provides public info on whether recovery is configured
-  app.get('/api/admin/recovery-status', async (req, res) => {
+  app.get('/api/admin/recovery-status', async (_req, res) => {
     const activeRecovery = await getActiveRecoveryKey();
     res.json({
       enabled: true,
@@ -1300,7 +1590,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

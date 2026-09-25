@@ -2,10 +2,10 @@ import { ArrowRight, Globe, ShieldCheck, CheckCircle2, Award } from 'lucide-reac
 import { COMPANY_STATS } from '../data/content';
 
 interface HeroProps {
-  onSelectServiceTab?: (serviceId: string) => void;
+  /* UNUSED CODE - READY FOR DELETION: onSelectServiceTab?: (serviceId: string) => void; */
 }
 
-export default function Hero({ onSelectServiceTab }: HeroProps) {
+export default function Hero({}: HeroProps) {
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -24,7 +24,7 @@ export default function Hero({ onSelectServiceTab }: HeroProps) {
             <span>Multidisciplinary Conglomerate of Choice</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white font-['Outfit',sans-serif] leading-[1.14]">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white font-['Outfit',sans-serif] leading-[1.15]">
             Building Infrastructure. <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-teal-300 to-teal-500">
               Powering Energy.
@@ -32,16 +32,16 @@ export default function Hero({ onSelectServiceTab }: HeroProps) {
             Connecting Global Frontiers.
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
+          <p className="text-sm sm:text-lg text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
             <strong className="text-white font-semibold">GreatStarGem</strong> delivers turnkey excellence across five critical economic pillars: world-class international conferences, eco-resilient real estate, commercial solar PV power, multidisciplinary engineering, and enterprise ICT solutions.
           </p>
 
           {/* CTAs: Teal-button & Slate-button */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 w-full sm:w-auto max-w-sm sm:max-w-none mx-auto pt-2">
             <button
               type="button"
               onClick={() => scrollToSection('services')}
-              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white font-bold text-sm sm:text-base shadow-lg shadow-teal-600/30 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white font-bold text-sm sm:text-base shadow-lg shadow-teal-600/30 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer min-h-[48px]"
               id="hero-cta-services"
             >
               <span>Explore Our Services</span>
@@ -51,7 +51,7 @@ export default function Hero({ onSelectServiceTab }: HeroProps) {
             <button
               type="button"
               onClick={() => scrollToSection('contact')}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 hover:text-white border border-slate-700 font-semibold text-sm sm:text-base shadow-sm transition-all duration-200 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 hover:text-white border border-slate-700 font-semibold text-sm sm:text-base shadow-sm transition-all duration-200 cursor-pointer min-h-[48px]"
               id="hero-cta-consultation"
             >
               <span>Request Project Proposal</span>
@@ -59,33 +59,33 @@ export default function Hero({ onSelectServiceTab }: HeroProps) {
           </div>
 
           {/* Quick Guarantees */}
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs sm:text-sm text-slate-400">
+          <div className="pt-3 flex flex-wrap items-center justify-center gap-y-2 gap-x-4 sm:gap-x-6 text-xs sm:text-sm text-slate-400">
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-teal-400" />
+              <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0" />
               <span>ISO & Regulatory Certified</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-teal-400" />
+              <ShieldCheck className="w-4 h-4 text-teal-400 shrink-0" />
               <span>Turnkey EPC Execution</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Globe className="w-4 h-4 text-teal-400" />
+              <Globe className="w-4 h-4 text-teal-400 shrink-0" />
               <span>Global & Local Compliance</span>
             </div>
           </div>
         </div>
 
         {/* Highlight Stats Strip */}
-        <div className="mt-16 sm:mt-20 pt-8 border-t border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8 text-left">
+        <div className="mt-12 sm:mt-20 pt-6 sm:pt-8 border-t border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 lg:gap-8 text-center sm:text-left">
           {COMPANY_STATS.map((stat, i) => (
-            <div key={i} className="flex flex-col">
-              <span className="text-3xl sm:text-4xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
+            <div key={i} className="flex flex-col p-3 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
+              <span className="text-2xl sm:text-4xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
                 {stat.value}
               </span>
-              <span className="text-sm font-semibold text-teal-400 mt-1">
+              <span className="text-xs sm:text-sm font-semibold text-teal-400 mt-1">
                 {stat.label}
               </span>
-              <span className="text-xs text-slate-400 mt-0.5">
+              <span className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
                 {stat.subtext}
               </span>
             </div>

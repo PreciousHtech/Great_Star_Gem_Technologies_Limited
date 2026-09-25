@@ -21,10 +21,19 @@ export function getPrisma(): PrismaClient | null {
   }
   if (!prismaInstance) {
     try {
-      // Ensure PgBouncer pooler compatibility by disabling prepared statement cache if pgbouncer is active
+      // Ensure PgBouncer pooler compatibility (e.g. Supabase port 6543) by disabling prepared statements
       let formattedUrl = dbUrl;
-      if (formattedUrl.includes('pgbouncer=true') && !formattedUrl.includes('statement_cache_size=')) {
-        formattedUrl += (formattedUrl.includes('?') ? '&' : '?') + 'statement_cache_size=0';
+      const isPooler = formattedUrl.includes(':6543') || formattedUrl.includes('pooler.supabase.com') || formattedUrl.includes('pgbouncer=true');
+      if (isPooler) {
+        if (!formattedUrl.includes('pgbouncer=true')) {
+          formattedUrl += (formattedUrl.includes('?') ? '&' : '?') + 'pgbouncer=true';
+        }
+        if (!formattedUrl.includes('statement_cache_size=')) {
+          formattedUrl += (formattedUrl.includes('?') ? '&' : '?') + 'statement_cache_size=0';
+        }
+        if (!formattedUrl.includes('connection_limit=')) {
+          formattedUrl += (formattedUrl.includes('?') ? '&' : '?') + 'connection_limit=1';
+        }
       }
 
       prismaInstance = new PrismaClient({
@@ -154,6 +163,7 @@ export async function ensureTablesExist(): Promise<{ success: boolean; message: 
         "impactMetrics" TEXT[] DEFAULT ARRAY[]::TEXT[],
         "liveUrl" TEXT,
         "githubUrl" TEXT,
+        "videoUrl" TEXT,
         "status" TEXT NOT NULL DEFAULT 'published',
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -196,6 +206,7 @@ export async function ensureTablesExist(): Promise<{ success: boolean; message: 
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
 
+      ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "videoUrl" TEXT;
       ALTER TABLE "AdminSetting" ADD COLUMN IF NOT EXISTS "password" TEXT;
       ALTER TABLE "AdminSetting" ADD COLUMN IF NOT EXISTS "recoveryKey" TEXT;
 

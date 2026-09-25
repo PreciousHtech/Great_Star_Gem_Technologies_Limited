@@ -36,6 +36,7 @@ export interface ProjectItem {
   impactMetrics?: string[];
   liveUrl?: string;
   githubUrl?: string;
+  videoUrl?: string;
   status?: 'published' | 'draft';
 }
 

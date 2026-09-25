@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { Gem, ArrowUp, Send, CheckCircle2, Shield } from 'lucide-react';
+import { /* UNUSED CODE - READY FOR DELETION: Gem, */ ArrowUp, Send, CheckCircle2, Shield } from 'lucide-react';
 import { NAV_LINKS } from './Navbar';
 import { SERVICES_DATA } from '../data/content';
 
@@ -26,22 +26,22 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-slate-950 text-slate-400 border-t border-slate-800/80 pt-16 pb-12 relative overflow-hidden">
+    <footer className="bg-slate-950 text-slate-400 border-t border-slate-800/80 pt-12 sm:pt-16 pb-10 sm:pb-12 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Main Footer Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-slate-800/80">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-10 pb-10 sm:pb-12 border-b border-slate-800/80">
           
           {/* Brand Col */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-2.5">
               <div>
-                <div className="w-15 h-15 bg-black rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-black rounded-full flex items-center justify-center">
                   <div
-                      className="w-7 h-7 bg-teal-700"
+                      className="bg-teal-600"
                       style={{
-                        width: "40px",
-                        height: "40px",
+                        width: "36px",
+                        height: "36px",
                         WebkitMaskImage: "url(/GreatStarGem_Logo.png)",
                         maskImage: "url(/GreatStarGem_Logo.png)",
                         WebkitMaskSize: "contain",
@@ -69,7 +69,7 @@ export default function Footer() {
             </p>
 
             <div className="pt-2 flex items-center gap-2 text-xs text-teal-400/90 font-medium">
-              <Shield className="w-4 h-4" />
+              <Shield className="w-4 h-4 shrink-0" />
               <span>Accredited Global Partner & EPC Contractor</span>
             </div>
           </div>
@@ -79,7 +79,7 @@ export default function Footer() {
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">
               Navigation
             </h4>
-            <ul className="space-y-2 text-xs sm:text-sm">
+            <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
               {NAV_LINKS.map((link) => (
                 <li key={link.name}>
                   <a
@@ -88,7 +88,7 @@ export default function Footer() {
                       e.preventDefault();
                       scrollToSection(link.href);
                     }}
-                    className="hover:text-teal-400 transition-colors cursor-pointer capitalize"
+                    className="inline-block py-1 sm:py-0.5 hover:text-teal-400 transition-colors cursor-pointer capitalize"
                   >
                     {link.name}
                   </a>
@@ -102,7 +102,7 @@ export default function Footer() {
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">
               Core Divisions
             </h4>
-            <ul className="space-y-2 text-xs sm:text-sm">
+            <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
               {SERVICES_DATA.map((s) => (
                 <li key={s.id}>
                   <a
@@ -111,7 +111,7 @@ export default function Footer() {
                       e.preventDefault();
                       scrollToSection('#services');
                     }}
-                    className="hover:text-teal-400 transition-colors cursor-pointer"
+                    className="inline-block py-1 sm:py-0.5 hover:text-teal-400 transition-colors cursor-pointer"
                   >
                     {s.shortTitle}
                   </a>
@@ -136,21 +136,21 @@ export default function Footer() {
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="space-y-2 pt-1">
-                <div className="relative">
+                <div className="relative flex items-center">
                   <input
                     type="email"
                     required
                     value={newsletterEmail}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
                     placeholder="Enter executive email..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-teal-500 placeholder:text-slate-500"
+                    className="w-full px-3.5 pr-14 py-3 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-xs text-white focus:outline-none focus:border-teal-500 placeholder:text-slate-500 min-h-[48px]"
                   />
                   <button
                     type="submit"
-                    className="absolute right-1.5 top-1.5 bottom-1.5 px-3 rounded-lg bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center shadow-sm"
+                    className="absolute right-1.5 top-1.5 bottom-1.5 px-3.5 rounded-lg bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center shadow-sm min-w-[44px]"
                     aria-label="Subscribe to newsletter"
                   >
-                    <Send className="w-3 h-3" />
+                    <Send className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </form>
@@ -160,20 +160,21 @@ export default function Footer() {
         </div>
 
         {/* Bottom Strip */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <div className="pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 text-center sm:text-left">
           <p>© {new Date().getFullYear()} GreatStarGemTechnologies. All rights reserved.</p>
           
-          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-            <span>ISO 9001:2015 Certified</span>
-            <span>GDPR & Privacy Compliant</span>
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
+            <span>ISO 9001:2015</span>
+            <span>•</span>
+            <span>GDPR Compliant</span>
 
             <button
               type="button"
               onClick={scrollToTop}
-              className="flex items-center gap-1 text-slate-400 hover:text-teal-400 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-slate-400 hover:text-teal-400 transition-colors cursor-pointer px-2 py-1 min-h-[44px]"
               id="back-to-top-btn"
             >
-              <span>Top</span>
+              <span>Back to Top</span>
               <ArrowUp className="w-3.5 h-3.5" />
             </button>
           </div>

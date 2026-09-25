@@ -178,24 +178,24 @@ export default function ServicesSection({
   };
 
   return (
-    <section id="services" className="py-24 sm:py-32 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white relative">
+    <section id="services" className="py-16 sm:py-24 lg:py-32 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <div className="inline-flex items-center px-3.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold uppercase tracking-wider mb-4">
             <span>Turnkey Expertise</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
             Our Five Core Services
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-slate-400">
+          <p className="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-400">
             From international diplomatic summits to clean megawatt power plants and civil infrastructure, GreatStarGem delivers unmatched multidisciplinary execution.
           </p>
         </div>
 
         {/* 5 Services Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {SERVICES_DATA.map((service, index) => {
             const IconComponent = ICON_MAP[service.iconName] || Globe;
             // The 4th and 5th items can span nicely on desktop if needed
@@ -260,11 +260,11 @@ export default function ServicesSection({
                   </div>
 
                   {/* Actions: Slate-button (explore) & Teal-button (book) */}
-                  <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                  <div className="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
                     <button
                       type="button"
                       onClick={() => onOpenServiceModal(service)}
-                      className="text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+                      className="px-3.5 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700/80 hover:bg-slate-800 text-xs font-semibold text-slate-200 hover:text-white flex items-center justify-center gap-1.5 transition-colors cursor-pointer min-h-[44px]"
                       id={`view-scope-${service.id}`}
                     >
                       <span>Explore Scope</span>
@@ -280,10 +280,11 @@ export default function ServicesSection({
                           contactSection.scrollIntoView({ behavior: 'smooth' });
                         }
                       }}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-md shadow-teal-600/25 transition-all cursor-pointer"
+                      className="px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-md shadow-teal-600/25 transition-all cursor-pointer min-h-[44px] flex items-center justify-center gap-1.5"
                       id={`inquire-btn-${service.id}`}
                     >
-                      Book Service
+                      <span>Book Service</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -293,22 +294,22 @@ export default function ServicesSection({
         </div>
 
         {/* Interactive Scope & Estimation Planner */}
-        <div className="mt-20 bg-gradient-to-br from-slate-900 via-teal-950/25 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+        <div className="mt-14 sm:mt-20 bg-gradient-to-br from-slate-900 via-teal-950/25 to-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-80 h-80 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
             
             {/* Left Controls */}
-            <div className="lg:col-span-6 space-y-6">
+            <div className="lg:col-span-6 space-y-5 sm:space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold uppercase">
                 <Calculator className="w-3.5 h-3.5" />
                 <span>Project Scope & Feasibility Planner</span>
               </div>
 
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-['Outfit',sans-serif]">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white font-['Outfit',sans-serif]">
                 Plan Your Engagement with GreatStarGem
               </h3>
-              <p className="text-sm text-slate-300">
+              <p className="text-xs sm:text-sm text-slate-300">
                 Select your sector of interest and required project magnitude to view our standard turnkey timeline, technical composition, and execution deliverables.
               </p>
 
@@ -323,13 +324,13 @@ export default function ServicesSection({
                       key={s.id}
                       type="button"
                       onClick={() => setCalcService(s.id)}
-                      className={`p-2.5 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer truncate ${
+                      className={`p-2.5 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer truncate min-h-[44px] flex items-center ${
                         calcService === s.id
                           ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
                           : 'bg-slate-800/80 border border-slate-700 text-slate-300 hover:border-slate-600 hover:text-white'
                       }`}
                     >
-                      {s.shortTitle}
+                      <span className="truncate">{s.shortTitle}</span>
                     </button>
                   ))}
                 </div>
@@ -340,13 +341,13 @@ export default function ServicesSection({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
                   2. Select Project Scale
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                   {(['standard', 'enterprise', 'flagship'] as const).map((scale) => (
                     <button
                       key={scale}
                       type="button"
                       onClick={() => setCalcScale(scale)}
-                      className={`py-2 px-3 rounded-xl text-center text-xs font-semibold capitalize transition-all cursor-pointer ${
+                      className={`py-2 px-2.5 rounded-xl text-center text-[11px] sm:text-xs font-semibold capitalize transition-all cursor-pointer min-h-[44px] flex items-center justify-center ${
                         calcScale === scale
                           ? 'bg-slate-800 border-2 border-teal-500 text-teal-300 shadow-sm'
                           : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
@@ -360,7 +361,7 @@ export default function ServicesSection({
             </div>
 
             {/* Right Output Card */}
-            <div className="lg:col-span-6 bg-slate-950/90 border border-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
+            <div className="lg:col-span-6 bg-slate-950/90 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-5 shadow-xl">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <span className="text-xs uppercase font-mono text-teal-400 font-semibold">
                   Feasibility Specification

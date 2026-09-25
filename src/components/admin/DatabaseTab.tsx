@@ -1,10 +1,18 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, ChangeEvent } from 'react';
 import { 
   Database, RefreshCw, CheckCircle2, AlertTriangle, ShieldCheck, 
-  Terminal, Server, Layers, ArrowUpRight, Copy, Check,
-  Eye, Trash2, Mail, Phone, Calendar, Search, X, AlertCircle, MessageSquare
+  /* [UNUSED - Candidate for removal]: Terminal, */ Server, Layers, /* [UNUSED - Candidate for removal]: ArrowUpRight, */ Copy, Check,
+  Eye, Trash2, Mail, Phone, Calendar, Search, X, AlertCircle, MessageSquare,
+  Cloud, UploadCloud, FolderOpen, /* [UNUSED - Candidate for removal]: FileVideo, Image as ImageIcon, */ Sparkles, Loader2, Key
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { 
+  fetchStorageStatus, 
+  updateStorageConfig, 
+  uploadFileToSupabaseStorage, 
+  StorageStatus, 
+  UploadResult 
+} from '../../utils/storageClient';
 
 interface InquiryItem {
   id: string;
@@ -22,7 +30,7 @@ export default function DatabaseTab() {
   const { dbStatus, checkDbStatus, initAndSeedDatabase } = useData();
   const [syncing, setSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<{ success: boolean; message: string } | null>(null);
-  const [copiedUrl, setCopiedUrl] = useState(false);
+  /* [UNUSED - Candidate for removal]: const [copiedUrl, setCopiedUrl] = useState(false); */
   const [inquiries, setInquiries] = useState<InquiryItem[]>([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
 
@@ -35,7 +43,26 @@ export default function DatabaseTab() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [inquiryFeedback, setInquiryFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // Supabase Storage States
+  const [storageStatus, setStorageStatus] = useState<StorageStatus | null>(null);
+  const [loadingStorage, setLoadingStorage] = useState(false);
+  const [showStorageConfig, setShowStorageConfig] = useState(false);
+  const [storageKeyInput, setStorageKeyInput] = useState('');
+  const [storageBucketInput, setStorageBucketInput] = useState('');
+  const [storageUrlInput, setStorageUrlInput] = useState('');
+  const [isSavingStorage, setIsSavingStorage] = useState(false);
+  const [storageFeedback, setStorageFeedback] = useState<{ success: boolean; message: string } | null>(null);
+
+  // Test Storage Upload States
+  const testFileInputRef = useRef<HTMLInputElement>(null);
+  const [testUploading, setTestUploading] = useState(false);
+  const [testUploadResult, setTestUploadResult] = useState<UploadResult | null>(null);
+  const [testProgressMsg, setTestProgressMsg] = useState('');
+  const [copiedTestUrl, setCopiedTestUrl] = useState(false);
+
+  /* [UNUSED - Candidate for removal]:
   const sampleConnectionUri = 'postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true';
+  */
 
   const loadInquiries = async () => {
     setLoadingInquiries(true);
@@ -54,15 +81,74 @@ export default function DatabaseTab() {
     }
   };
 
+  const loadStorageStatus = async () => {
+    setLoadingStorage(true);
+    try {
+      const status = await fetchStorageStatus();
+      setStorageStatus(status);
+      if (status.bucket) setStorageBucketInput(status.bucket);
+      if (status.url) setStorageUrlInput(status.url);
+    } finally {
+      setLoadingStorage(false);
+    }
+  };
+
   useEffect(() => {
     loadInquiries();
+    loadStorageStatus();
   }, []);
 
+  const handleSaveStorageConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingStorage(true);
+    setStorageFeedback(null);
+    try {
+      const res = await updateStorageConfig({
+        url: storageUrlInput.trim() || undefined,
+        key: storageKeyInput.trim() || undefined,
+        bucket: storageBucketInput.trim() || undefined,
+      });
+      setStorageFeedback(res);
+      await loadStorageStatus();
+      if (res.success) {
+        setStorageKeyInput('');
+      }
+    } finally {
+      setIsSavingStorage(false);
+    }
+  };
+
+  const handleTestUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setTestUploading(true);
+    setTestUploadResult(null);
+    setTestProgressMsg('');
+    try {
+      const folder = file.type.startsWith('video/') ? 'videos' : 'media';
+      const res = await uploadFileToSupabaseStorage(file, folder, (msg) => {
+        setTestProgressMsg(msg);
+      });
+      setTestUploadResult(res);
+    } finally {
+      setTestUploading(false);
+      if (testFileInputRef.current) testFileInputRef.current.value = '';
+    }
+  };
+
+  const handleCopyTestUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedTestUrl(true);
+    setTimeout(() => setCopiedTestUrl(false), 2000);
+  };
+
+  /* [UNUSED - Candidate for removal]:
   const handleCopyUri = () => {
     navigator.clipboard.writeText(sampleConnectionUri);
     setCopiedUrl(true);
     setTimeout(() => setCopiedUrl(false), 2000);
   };
+  */
 
   const handleSyncDb = async () => {
     setSyncing(true);
@@ -273,14 +359,255 @@ export default function DatabaseTab() {
           <div className="flex items-start gap-2 bg-slate-900/80 p-3 rounded-xl border border-slate-800/80">
             <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
             <div>
-              <strong className="text-slate-200">Graceful Local Fallback:</strong> If DATABASE_URL is not provided or undergoing maintenance, the portal seamlessly uses local state without throwing client errors.
+              <strong className="text-slate-200">Graceful Local Fallback:</strong> If database url is not provided or undergoing maintenance, the portal seamlessly uses local state without throwing client errors.
             </div>
           </div>
         </div>
       </div>
 
+      {/* ======================================================== */}
+      {/* SUPABASE CLOUD STORAGE SERVICE (MEDIA & VIDEO CDN) */}
+      {/* ======================================================== */}
+      <div className="p-4 sm:p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4" id="supabase-storage-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-300 shrink-0">
+              <Cloud className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base font-bold text-white">
+                  Supabase Cloud Storage (Images & Videos CDN)
+                </h3>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold border ${
+                  storageStatus?.configured
+                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                    : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+                }`}>
+                  {storageStatus?.configured ? 'Active & Ready' : 'API Key Pending'}
+                </span>
+                {storageStatus?.bucket && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-800 border border-slate-700 text-teal-300">
+                    Bucket: {storageStatus.bucket}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Upload images and video files to Supabase Storage. The public CDN URL is saved directly into PostgreSQL via Prisma.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={loadStorageStatus}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer min-h-[38px]"
+              title="Refresh Storage Status"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingStorage ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowStorageConfig(!showStorageConfig)}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-teal-600/20 hover:bg-teal-600/30 text-teal-300 border border-teal-500/40 transition-colors flex items-center gap-1.5 cursor-pointer min-h-[38px]"
+            >
+              <Key className="w-3.5 h-3.5" />
+              <span>{showStorageConfig ? 'Hide Config' : 'Configure Bucket & Key'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Explanatory architectural notes */}
+        <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-2 text-xs text-slate-300 leading-relaxed">
+          <div className="font-semibold text-teal-300 flex items-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0" />
+            <span>How Supabase Storage Integrates with Prisma & PostgreSQL:</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-[11px] text-slate-400">
+            <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800/60">
+              <strong className="text-slate-200 block mb-1">1. Direct Upload to Bucket</strong>
+              Video and image files are uploaded directly to the Supabase Storage bucket (default: <code className="text-teal-300">media</code>).
+            </div>
+            <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800/60">
+              <strong className="text-slate-200 block mb-1">2. Instant Public CDN URL</strong>
+              Supabase generates an immutable public URL: <code className="text-teal-300 text-[10px]">https://[ref].supabase.co/storage/v1/object/public/...</code>
+            </div>
+            <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800/60">
+              <strong className="text-slate-200 block mb-1">3. Clean Text in Postgres</strong>
+              Only the clean URL string is saved in your database (<code className="text-teal-300">Project.videoUrl</code> or <code className="text-teal-300">Project.image</code>). No database bloat!
+            </div>
+          </div>
+        </div>
+
+        {/* Configuration Form (Expanded when clicked or if pending) */}
+        {showStorageConfig && (
+          <form onSubmit={handleSaveStorageConfig} className="p-4 rounded-xl bg-slate-950 border border-teal-500/30 space-y-3.5 animate-in fade-in duration-150">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <Key className="w-3.5 h-3.5 text-teal-400" />
+                <span>Supabase Storage Credentials & Target Bucket</span>
+              </h4>
+              <span className="text-[10px] text-slate-500 font-mono">Auto-saved to backend config</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Supabase Project URL
+                </label>
+                <input
+                  type="url"
+                  value={storageUrlInput}
+                  onChange={(e) => setStorageUrlInput(e.target.value)}
+                  placeholder="https://xyzcompany.supabase.co"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-teal-500 min-h-[38px]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Storage Bucket Name
+                </label>
+                <input
+                  type="text"
+                  value={storageBucketInput}
+                  onChange={(e) => setStorageBucketInput(e.target.value)}
+                  placeholder="media"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-teal-500 min-h-[38px]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Supabase API Key (Anon or Service Role)
+                </label>
+                <input
+                  type="password"
+                  value={storageKeyInput}
+                  onChange={(e) => setStorageKeyInput(e.target.value)}
+                  placeholder={storageStatus?.hasKey ? '•••••••••••••••• (Saved in Cache)' : 'eyJh... Paste Supabase API Key'}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-teal-500 min-h-[38px]"
+                />
+              </div>
+            </div>
+
+            {storageFeedback && (
+              <div className={`p-2.5 rounded-lg text-xs flex items-center gap-2 ${
+                storageFeedback.success ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30' : 'bg-red-500/10 text-red-300 border border-red-500/30'
+              }`}>
+                {storageFeedback.success ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />}
+                <span>{storageFeedback.message}</span>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+              <span className="text-[11px] text-slate-400">
+                You can also define <code className="text-teal-300">SUPABASE_URL</code> and <code className="text-teal-300">SUPABASE_ANON_KEY</code> in your environment variables.
+              </span>
+              <button
+                type="submit"
+                disabled={isSavingStorage}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-500 text-white transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 min-h-[38px]"
+              >
+                {isSavingStorage ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                <span>Save Storage Config</span>
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Quick Test Upload Section */}
+        <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <div className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+              <UploadCloud className="w-4 h-4 text-teal-400" />
+              <span>Test Direct File Upload to Supabase Storage</span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Upload any MP4 video or JPG/PNG image to test connectivity and generate an instant public CDN URL.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="file"
+              ref={testFileInputRef}
+              onChange={handleTestUpload}
+              accept="video/*,image/*"
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => testFileInputRef.current?.click()}
+              disabled={testUploading}
+              className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]"
+            >
+              {testUploading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 text-teal-400 animate-spin" />
+                  <span>Uploading to Supabase...</span>
+                </>
+              ) : (
+                <>
+                  <FolderOpen className="w-3.5 h-3.5 text-teal-400" />
+                  <span>Choose Test File</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Test Upload Result */}
+        {testProgressMsg && (
+          <div className="text-xs text-teal-300 font-mono flex items-center gap-2 px-1">
+            <Sparkles className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+            <span>{testProgressMsg}</span>
+          </div>
+        )}
+
+        {testUploadResult && (
+          <div className={`p-3.5 rounded-xl text-xs border ${
+            testUploadResult.success
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+              : 'bg-amber-500/10 border-amber-500/30 text-amber-200'
+          }`}>
+            {testUploadResult.success && testUploadResult.url ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-emerald-300 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Upload Successful! Public Supabase CDN URL:</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyTestUrl(testUploadResult.url!)}
+                    className="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 border border-emerald-500/40 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    {copiedTestUrl ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedTestUrl ? 'Copied' : 'Copy URL'}</span>
+                  </button>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-950 font-mono text-[11px] text-teal-300 break-all select-all border border-emerald-500/20">
+                  {testUploadResult.url}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-semibold text-amber-300">Upload Note:</div>
+                  <div className="text-[11px] text-amber-200/90 mt-0.5">{testUploadResult.error}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Client Consultation Inquiries Table */}
-      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+      <div className="p-4 sm:p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-bold text-white flex items-center gap-2">

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, Gem, PhoneCall, ArrowRight } from 'lucide-react';
+import { Menu, X, /* UNUSED CODE - READY FOR DELETION: Gem, */ PhoneCall, ArrowRight } from 'lucide-react';
 
 interface NavbarProps {
-  onOpenConsultation?: () => void;
+  /* [UNUSED - Candidate for removal]: onOpenConsultation?: () => void; */
 }
 
 export const NAV_LINKS = [
@@ -14,7 +14,7 @@ export const NAV_LINKS = [
   { name: 'Contact', href: '#contact' },
 ];
 
-export default function Navbar({ onOpenConsultation }: NavbarProps) {
+export default function Navbar({}: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
@@ -72,13 +72,13 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
             className="flex items-center gap-2.5 group cursor-pointer"
             id="navbar-brand-logo"
           >
-            <div>
-              <div className="w-15 h-15 bg-black rounded-full flex items-center justify-center">
+            <div className="shrink-0">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 bg-black rounded-full flex items-center justify-center border border-slate-800 shadow-md">
                 <div
-                    className="w-7 h-7 bg-teal-700"
+                    className="w-7 h-7 sm:w-8 sm:h-8 bg-teal-500"
                     style={{
-                      width: "40px",
-                      height: "40px",
+                      width: "32px",
+                      height: "32px",
                       WebkitMaskImage: "url(/GreatStarGem_Logo.png)",
                       maskImage: "url(/GreatStarGem_Logo.png)",
                       WebkitMaskSize: "contain",
@@ -92,10 +92,10 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-tight text-white font-['Outfit',sans-serif]">
-                GreatStar<span className="text-teal-500">Gem</span>
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-white font-['Outfit',sans-serif] leading-tight">
+                GreatStar<span className="text-teal-400">Gem</span>
               </span>
-              <span className="text-[10px] tracking-widest uppercase font-medium text-slate-400">
+              <span className="text-[9px] sm:text-[10px] tracking-widest uppercase font-medium text-slate-400 leading-none mt-0.5">
                 Conglomerate & Consulting
               </span>
             </div>
@@ -127,7 +127,7 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
             })}
           </nav>
 
-          {/* Desktop Action Button - Purple Button */}
+          {/* Desktop Action Button - Teal Button */}
           <div className="hidden lg:flex items-center">
             <a
               href="#contact"
@@ -148,7 +148,7 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-300 hover:text-white bg-slate-900/80 border border-slate-800 focus:outline-none"
+              className="p-2.5 rounded-xl text-slate-300 hover:text-white bg-slate-900/80 border border-slate-800 focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
               aria-label="Toggle navigation menu"
               id="mobile-menu-toggle"
             >
@@ -160,46 +160,52 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-x-0 top-[69px] bg-slate-950/98 backdrop-blur-xl border-b border-slate-800 shadow-2xl px-6 py-6 transition-all animate-in fade-in slide-in-from-top-4 duration-200">
-          <div className="flex flex-col gap-2">
-            {NAV_LINKS.map((link) => {
-              const linkId = link.href.replace('#', '');
-              const isActive = activeSection === linkId;
-              return (
+        <>
+          <div 
+            className="lg:hidden fixed inset-0 top-[60px] bg-slate-950/70 backdrop-blur-sm -z-10 animate-in fade-in"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="lg:hidden absolute top-full left-0 right-0 bg-slate-950/98 backdrop-blur-xl border-b border-slate-800 shadow-2xl px-5 py-6 transition-all animate-in fade-in slide-in-from-top-4 duration-200">
+            <div className="flex flex-col gap-1.5">
+              {NAV_LINKS.map((link) => {
+                const linkId = link.href.replace('#', '');
+                const isActive = activeSection === linkId;
+                return (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick(link.href);
+                    }}
+                    className={`px-4 py-3 rounded-xl text-base font-semibold transition-colors min-h-[44px] flex items-center ${
+                      isActive
+                        ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
+                        : 'text-slate-200 hover:bg-slate-900 hover:text-white'
+                    }`}
+                    id={`mobile-nav-link-${linkId}`}
+                  >
+                    {link.name}
+                  </a>
+                );
+              })}
+              <div className="pt-4 mt-2 border-t border-slate-800/80 flex flex-col gap-2">
                 <a
-                  key={link.name}
-                  href={link.href}
+                  href="#contact"
                   onClick={(e) => {
                     e.preventDefault();
-                    handleNavClick(link.href);
+                    handleNavClick('#contact');
                   }}
-                  className={`px-4 py-3 rounded-xl text-base font-medium transition-colors ${
-                    isActive
-                      ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white font-semibold'
-                      : 'text-slate-200 hover:bg-slate-900 hover:text-white'
-                  }`}
-                  id={`mobile-nav-link-${linkId}`}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-center font-bold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white transition-all shadow-md shadow-teal-600/30 min-h-[48px]"
+                  id="mobile-nav-cta"
                 >
-                  {link.name}
+                  <PhoneCall className="w-4 h-4" />
+                  <span>Book Consultation & RFQ</span>
                 </a>
-              );
-            })}
-            <div className="pt-4 mt-2 border-t border-slate-800/80">
-              <a
-                href="#contact"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavClick('#contact');
-                }}
-                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-center font-semibold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white transition-colors shadow-md shadow-teal-600/25"
-                id="mobile-nav-cta"
-              >
-                <PhoneCall className="w-4 h-4" />
-                <span>Book Consultation</span>
-              </a>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </header>
   );

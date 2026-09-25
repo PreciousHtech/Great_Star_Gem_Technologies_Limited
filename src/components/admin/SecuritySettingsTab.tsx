@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, FormEvent } from 'react';
 import { 
-  ShieldCheck, Key, Lock, CheckCircle2, RefreshCw, 
+  ShieldCheck, Key, Lock, CheckCircle2, /* [UNUSED - Candidate for removal]: RefreshCw, */ 
   AlertTriangle, Eye, EyeOff, Save, Check, X,
   Loader2, AlertCircle, LifeBuoy, Database
 } from 'lucide-react';
@@ -329,7 +329,7 @@ export default function SecuritySettingsTab() {
                       }
                     }}
                     placeholder="Enter existing active password"
-                    className={`w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-900 border text-slate-100 text-xs focus:outline-none transition-colors ${
+                    className={`w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-900 border text-slate-100 text-sm sm:text-xs focus:outline-none transition-colors min-h-[42px] ${
                       currentPasswordStatus === 'verified'
                         ? 'border-emerald-500/50 focus:border-emerald-500'
                         : currentPasswordStatus === 'invalid'
@@ -341,7 +341,7 @@ export default function SecuritySettingsTab() {
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer min-h-[42px]"
                     title={showCurrentPassword ? 'Hide current password' : 'Show current password'}
                   >
                     {showCurrentPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -387,19 +387,19 @@ export default function SecuritySettingsTab() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Min 8 characters & symbols"
-                      className={`w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-900 border text-slate-100 text-xs focus:outline-none transition-colors ${
+                      className={`w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-900 border text-slate-100 text-sm sm:text-xs focus:outline-none transition-colors min-h-[42px] ${
                         newPassword && !passwordStrength.isValid 
                           ? 'border-amber-500/50 focus:border-amber-500' 
                           : newPassword && passwordStrength.isValid
                           ? 'border-emerald-500/50 focus:border-emerald-500'
-                          : 'border-slate-800 focus:border-purple-500'
+                          : 'border-slate-800 focus:border-teal-500'
                       }`}
                       id="new-admin-password-input"
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer min-h-[42px]"
                       title={showNewPassword ? 'Hide new password' : 'Show new password'}
                     >
                       {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -428,19 +428,19 @@ export default function SecuritySettingsTab() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter new password"
-                      className={`w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-900 border text-slate-100 text-xs focus:outline-none transition-colors ${
+                      className={`w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-900 border text-slate-100 text-sm sm:text-xs focus:outline-none transition-colors min-h-[42px] ${
                         passwordsMatch === false
                           ? 'border-red-500/50 focus:border-red-500'
                           : passwordsMatch === true
                           ? 'border-emerald-500/50 focus:border-emerald-500'
-                          : 'border-slate-800 focus:border-purple-500'
+                          : 'border-slate-800 focus:border-teal-500'
                       }`}
                       id="confirm-admin-password-input"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer min-h-[42px]"
                       title={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                     >
                       {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
