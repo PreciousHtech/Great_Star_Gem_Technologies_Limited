@@ -33,12 +33,7 @@ export function writeStorageCache(config: StorageConfig): void {
   }
 }
 
-/**
- * Resolves Supabase credentials with priority:
- * 1. Environment variables (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY)
- * 2. DATABASE_URL project-ref parsing (e.g. postgres.[project-ref]:...)
- * 3. Local admin storage cache / database config
- */
+
 export function resolveSupabaseConfig(): {
   url: string | null;
   key: string | null;

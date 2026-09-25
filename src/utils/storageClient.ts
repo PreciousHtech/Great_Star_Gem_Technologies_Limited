@@ -110,13 +110,7 @@ export function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-/**
- * Uploads a local file to the Supabase Storage bucket.
- * 1. Encodes file as Data URL
- * 2. Transmits to `/api/storage/upload`
- * 3. Server uploads buffer into target Supabase Storage public bucket
- * 4. Returns the public CDN URL to store in Postgres via Prisma
- */
+
 export async function uploadFileToSupabaseStorage(
   file: File,
   folder: 'Avatar_image' | 'Cover_image' | 'Videos' | 'media' = 'media',
