@@ -1,10 +1,13 @@
-import { useState, FormEvent } from 'react';
+import { useState, useRef, FormEvent, ChangeEvent } from 'react';
 import { 
   Quote, Star, Edit3, Trash2, CheckCircle2, User, Building, 
-  Image as ImageIcon, RefreshCw, X, AlertCircle
+  Image as ImageIcon, RefreshCw, X, AlertCircle, FolderOpen, /* [UNUSED - Candidate for removal]: Upload, */
+  Cloud, Sparkles, Loader2
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { TestimonialItem } from '../../types';
+import TestimonialAvatar, { getFirstNameInitial } from '../TestimonialAvatar';
+import { uploadFileToSupabaseStorage } from '../../utils/storageClient';
 
 export default function TestimonialsTab() {
   const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial, deleteAllTestimonials, resetTestimonials } = useData();
@@ -30,6 +33,130 @@ export default function TestimonialsTab() {
   // Delete Confirmation state
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
+  // File Upload from Folder refs and file name tracking
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+  const [clientAvatarFileName, setClientAvatarFileName] = useState('');
+  const [editAvatarFileName, setEditAvatarFileName] = useState('');
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
+
+  /**
+   * Reads an image file from the user's device/folder and scales it to an optimal
+   * avatar resolution (~500px) in Base64 format for fast persistence & display.
+   */
+  const processImageFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith('image/')) {
+        reject(new Error('Please select a valid image file.'));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const rawData = e.target?.result as string;
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 500;
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL('image/jpeg', 0.88));
+              return;
+            }
+          }
+          resolve(rawData);
+        };
+        img.onerror = () => resolve(rawData);
+        img.src = rawData;
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const [avatarUploadStatus, setAvatarUploadStatus] = useState<string | null>(null);
+  const [avatarStorageType, setAvatarStorageType] = useState<'supabase' | 'local' | null>(null);
+  const [editAvatarUploadStatus, setEditAvatarUploadStatus] = useState<string | null>(null);
+
+  const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsProcessingFile(true);
+      setClientAvatarFileName(file.name);
+      setAvatarUploadStatus('Uploading avatar to Supabase Storage bucket...');
+
+      // Attempt direct Supabase Storage bucket upload
+      const uploadRes = await uploadFileToSupabaseStorage(file, 'testimonials', (msg) => {
+        setAvatarUploadStatus(msg);
+      });
+
+      if (uploadRes.success && uploadRes.url) {
+        // Direct public CDN URL returned from Supabase bucket
+        setClientAvatar(uploadRes.url);
+        setAvatarStorageType('supabase');
+        setAvatarUploadStatus('✓ Stored in Supabase Storage CDN.');
+        return;
+      }
+
+      // Fallback to local optimized base64
+      const base64 = await processImageFile(file);
+      setClientAvatar(base64);
+      setAvatarStorageType('local');
+      setAvatarUploadStatus(uploadRes.requiresKey 
+        ? 'Using local preview (Configure Supabase Storage in Database tab for Cloud CDN)' 
+        : 'Image attached');
+    } catch (err) {
+      console.error('Failed to load image from folder:', err);
+      setClientAvatarFileName('');
+      setAvatarUploadStatus(null);
+    } finally {
+      setIsProcessingFile(false);
+    }
+  };
+
+  const handleEditFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsProcessingFile(true);
+      setEditAvatarFileName(file.name);
+      setEditAvatarUploadStatus('Uploading to Supabase Storage...');
+
+      // Attempt direct Supabase Storage bucket upload
+      const uploadRes = await uploadFileToSupabaseStorage(file, 'testimonials', (msg) => {
+        setEditAvatarUploadStatus(msg);
+      });
+
+      if (uploadRes.success && uploadRes.url) {
+        setEditAvatar(uploadRes.url);
+        setEditAvatarUploadStatus('✓ Stored in Supabase CDN.');
+        return;
+      }
+
+      const base64 = await processImageFile(file);
+      setEditAvatar(base64);
+      setEditAvatarUploadStatus(uploadRes.requiresKey ? 'Local image loaded' : null);
+    } catch (err) {
+      console.error('Failed to load image from folder:', err);
+      setEditAvatarFileName('');
+      setEditAvatarUploadStatus(null);
+    } finally {
+      setIsProcessingFile(false);
+    }
+  };
+
   const handleUploadSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!clientName.trim() || !testimonialContent.trim()) return;
@@ -52,16 +179,22 @@ export default function TestimonialsTab() {
       role: role || 'Client',
       organization: organization || 'Partner',
       quote: testimonialContent.trim(),
-      avatar: clientAvatar.trim() || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      avatar: clientAvatar.trim(),
       rating: 5,
       country: 'Global Partner',
-      serviceCategory: 'web-dev',
+      serviceCategory: 'web-application',
       createdAt: new Date().toISOString().split('T')[0]
     });
 
     setClientName('');
     setRoleCompany('');
     setClientAvatar('');
+    setClientAvatarFileName('');
+    setAvatarUploadStatus(null);
+    setAvatarStorageType(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     setTestimonialContent('');
     setStatusMessage(`Testimonial from "${clientName}" uploaded live.`);
     setTimeout(() => setStatusMessage(null), 3500);
@@ -72,6 +205,7 @@ export default function TestimonialsTab() {
     setEditName(item.name);
     setEditRoleCompany(item.organization ? `${item.role} / ${item.organization}` : item.role);
     setEditAvatar(item.avatar || '');
+    setEditAvatarFileName(item.avatar?.startsWith('data:') ? 'Uploaded image' : '');
     setEditQuote(item.quote);
   };
 
@@ -91,7 +225,7 @@ export default function TestimonialsTab() {
       name: editName.trim(),
       role: role,
       organization: organization,
-      avatar: editAvatar.trim() || editingItem.avatar,
+      avatar: editAvatar.trim(),
       quote: editQuote.trim()
     });
 
@@ -192,22 +326,114 @@ export default function TestimonialsTab() {
 
             {/* Field 3: Client Avatar */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Client Avatar (Optional Image URL)
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <ImageIcon className="w-4 h-4" />
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                  Client Image (Optional)
+                </label>
+                <div className="flex items-center gap-2">
+                  {avatarStorageType === 'supabase' || clientAvatar?.includes('supabase.co') ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                      <Cloud className="w-2.5 h-2.5 text-emerald-400" />
+                      Supabase CDN
+                    </span>
+                  ) : null}
+                  {clientAvatar.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setClientAvatar('');
+                        setClientAvatarFileName('');
+                        setAvatarUploadStatus(null);
+                        setAvatarStorageType(null);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                      className="text-[11px] text-red-400 hover:text-red-300 flex items-center gap-0.5 cursor-pointer transition-colors"
+                      title="Clear image and revert to teal initial avatar"
+                    >
+                      <X className="w-3 h-3" />
+                      <span>Remove</span>
+                    </button>
+                  )}
+                  <span className="text-[11px] text-teal-400 font-medium truncate max-w-[150px]">
+                    {clientAvatar.trim() ? (clientAvatarFileName || (clientAvatar.startsWith('data:') ? 'Uploaded Image' : 'Custom Image')) : 'Avatar'}
+                  </span>
                 </div>
-                <input
-                  type="url"
-                  value={clientAvatar}
-                  onChange={(e) => setClientAvatar(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 transition-colors"
-                  id="testimonial-avatar-url"
-                />
               </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                {/* Text/URL Input */}
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <ImageIcon className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={clientAvatarFileName || (clientAvatar.startsWith('data:') ? 'Uploaded Image' : clientAvatar)}
+                    onChange={(e) => {
+                      setClientAvatar(e.target.value);
+                      setClientAvatarFileName('');
+                      setAvatarStorageType(null);
+                      setAvatarUploadStatus(null);
+                    }}
+                    placeholder="Paste Image URL or browse folder..."
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-sm sm:text-xs focus:outline-none focus:border-teal-500 transition-colors truncate min-h-[42px]"
+                    id="testimonial-avatar-url"
+                  />
+                </div>
+
+                {/* Hidden File Input for Folder Upload */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                  className="hidden"
+                  id="testimonial-upload-file-input"
+                />
+
+                <div className="flex items-center gap-2">
+                  {/* Browse Folder Button */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isProcessingFile}
+                    className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 hover:border-teal-500/50 min-h-[42px]"
+                    title="Upload client image to Supabase Storage"
+                  >
+                    {isProcessingFile ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 text-teal-400 animate-spin" />
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FolderOpen className="w-3.5 h-3.5 text-teal-400" />
+                        <span>Browse</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Live Preview Avatar */}
+                  <div className="shrink-0" title="Avatar Preview">
+                    <TestimonialAvatar
+                      name={clientName || 'User'}
+                      avatar={clientAvatar}
+                      size="sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {avatarUploadStatus && (
+                <div className="text-[11px] text-teal-300 font-mono mt-1.5 flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-teal-400 shrink-0" />
+                  <span>{avatarUploadStatus}</span>
+                </div>
+              )}
+
+              <p className="text-[11px] text-slate-400 mt-1">
+                Upload from your computer/folder or paste a link. Stored directly to your Supabase Storage bucket. If no image is provided, a initials avatar will be generated.
+              </p>
             </div>
           </div>
 
@@ -222,16 +448,17 @@ export default function TestimonialsTab() {
               value={testimonialContent}
               onChange={(e) => setTestimonialContent(e.target.value)}
               placeholder="Enter verbatim client review, endorsement, or project appraisal (e.g., 'Great technical collaboration on web development projects...')"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 transition-colors resize-none"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-sm sm:text-xs focus:outline-none focus:border-teal-500 transition-colors resize-none"
               id="testimonial-content-textarea"
             />
           </div>
 
           {/* Action Button: + UPLOAD TESTIMONIAL LIVE */}
-          <div className="flex justify-end pt-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end pt-2">
             <button
               type="submit"
-              className="py-3 px-6 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 transition-all flex items-center gap-2 cursor-pointer"
+              disabled={isProcessingFile}
+              className="w-full sm:w-auto py-3 px-6 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
               id="upload-testimonial-live-btn"
             >
               <span>+ UPLOAD TESTIMONIAL LIVE</span>
@@ -291,10 +518,10 @@ export default function TestimonialsTab() {
                 {/* Header with Avatar & Name */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3.5">
-                    <img
-                      src={item.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
-                      alt={item.name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-teal-500/40 shadow-sm shrink-0"
+                    <TestimonialAvatar
+                      name={item.name}
+                      avatar={item.avatar}
+                      size="md"
                     />
                     <div>
                       <div className="text-sm font-bold text-white flex items-center gap-1.5 font-['Outfit',sans-serif]">
@@ -390,17 +617,18 @@ export default function TestimonialsTab() {
 
       {/* Edit Testimonial Modal */}
       {editingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-lg bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
             <button
               type="button"
               onClick={() => setEditingItem(null)}
-              className="absolute top-6 right-6 p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Close edit modal"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="mb-6">
+            <div className="mb-6 pr-10">
               <span className="text-xs font-mono font-bold text-teal-400 uppercase tracking-wider">
                 EDIT TESTIMONIAL
               </span>
@@ -419,7 +647,7 @@ export default function TestimonialsTab() {
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm sm:text-xs focus:outline-none focus:border-teal-500 min-h-[42px]"
                 />
               </div>
 
@@ -432,20 +660,106 @@ export default function TestimonialsTab() {
                   required
                   value={editRoleCompany}
                   onChange={(e) => setEditRoleCompany(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm sm:text-xs focus:outline-none focus:border-teal-500 min-h-[42px]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Client Avatar Image URL
-                </label>
-                <input
-                  type="url"
-                  value={editAvatar}
-                  onChange={(e) => setEditAvatar(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-slate-300">
+                    Client Image (Optional)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {editAvatar?.includes('supabase.co') && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                        <Cloud className="w-2.5 h-2.5 text-emerald-400" />
+                        Supabase CDN
+                      </span>
+                    )}
+                    {editAvatar.trim() && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditAvatar('');
+                          setEditAvatarFileName('');
+                          setEditAvatarUploadStatus(null);
+                          if (editFileInputRef.current) editFileInputRef.current.value = '';
+                        }}
+                        className="text-[11px] text-red-400 hover:text-red-300 flex items-center gap-0.5 cursor-pointer transition-colors"
+                        title="Clear image and revert to teal initial avatar"
+                      >
+                        <X className="w-3 h-3" />
+                        <span>Remove</span>
+                      </button>
+                    )}
+                    <span className="text-[11px] text-teal-400 font-medium truncate max-w-[150px]">
+                      {editAvatar.trim() ? (editAvatarFileName || (editAvatar.startsWith('data:') ? 'Uploaded Image' : 'Custom Image')) : 'Avatar'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <input
+                    type="text"
+                    value={editAvatarFileName || (editAvatar.startsWith('data:') ? 'Uploaded Image' : editAvatar)}
+                    onChange={(e) => {
+                      setEditAvatar(e.target.value);
+                      setEditAvatarFileName('');
+                      setEditAvatarUploadStatus(null);
+                    }}
+                    placeholder="Paste Image URL or browse folder..."
+                    className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm sm:text-xs focus:outline-none focus:border-teal-500 truncate min-h-[42px]"
+                  />
+
+                  {/* Hidden File Input for Edit Modal */}
+                  <input
+                    type="file"
+                    ref={editFileInputRef}
+                    onChange={handleEditFileUpload}
+                    accept="image/*"
+                    className="hidden"
+                    id="testimonial-edit-file-input"
+                  />
+
+                  <div className="flex items-center gap-2">
+                    {/* Browse Folder Button */}
+                    <button
+                      type="button"
+                      onClick={() => editFileInputRef.current?.click()}
+                      disabled={isProcessingFile}
+                      className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 hover:border-teal-500/50 min-h-[42px]"
+                      title="Upload client image to Supabase Storage"
+                    >
+                      {isProcessingFile ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 text-teal-400 animate-spin" />
+                          <span>Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FolderOpen className="w-3.5 h-3.5 text-teal-400" />
+                          <span>Browse</span>
+                        </>
+                      )}
+                    </button>
+
+                    <div className="shrink-0" title="Avatar Preview">
+                      <TestimonialAvatar
+                        name={editName || 'User'}
+                        avatar={editAvatar}
+                        size="sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+                {editAvatarUploadStatus && (
+                  <div className="text-[11px] text-teal-300 font-mono mt-1 flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3 text-teal-400 shrink-0" />
+                    <span>{editAvatarUploadStatus}</span>
+                  </div>
+                )}
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Upload from your folder or paste a URL. If empty, an avatar with initial '{getFirstNameInitial(editName)}' on teal background will be displayed.
+                </p>
               </div>
 
               <div>
@@ -454,24 +768,25 @@ export default function TestimonialsTab() {
                 </label>
                 <textarea
                   required
-                  rows={3}
+                  rows={4}
                   value={editQuote}
                   onChange={(e) => setEditQuote(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm sm:text-xs focus:outline-none focus:border-teal-500 resize-none"
                 />
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-900">
+              <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 border-t border-slate-900">
                 <button
                   type="button"
                   onClick={() => setEditingItem(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 cursor-pointer min-h-[44px] flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 cursor-pointer"
+                  disabled={isProcessingFile}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 cursor-pointer min-h-[44px] flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
                   Save Changes
                 </button>

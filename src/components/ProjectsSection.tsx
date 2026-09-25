@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, MapPin, Calendar, ExternalLink, Layers } from 'lucide-react';
+import { ArrowRight, MapPin, Calendar, ExternalLink, Layers, Play /* [UNUSED - Candidate for removal]: , Video */ } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { ProjectItem, ServiceCategory } from '../types';
 
@@ -25,32 +25,32 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
     ? projects
     : projects.filter((p) => 
         p.category === activeFilter || 
-        (activeFilter === 'web-application' && (p.category === 'web-application' || p.category === 'web-dev'))
+        (activeFilter === 'web-application' && (p.category === 'web-application' /* UNUSED CODE - READY FOR DELETION: || p.category === 'web-dev' */))
       );
 
   return (
-    <section id="projects" className="py-24 sm:py-32 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-white relative overflow-hidden">
+    <section id="projects" className="py-16 sm:py-24 lg:py-32 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-white relative overflow-hidden">
       {/* Subtle Teal Accent Glow */}
       <div className="absolute top-1/4 right-0 w-96 h-96 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4 sm:gap-6">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold uppercase tracking-wider mb-4">
               <span>Proven Milestones</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
               Featured Projects & Portfolio
             </h2>
-            <p className="mt-4 text-base text-slate-300">
+            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-slate-300">
               A track record of developer showcase projects, high-stakes summits, modern residential master-plans, multi-megawatt solar arrays, and high-security enterprise systems.
             </p>
           </div>
 
           {projects.length > 0 && (
-            <div className="text-sm text-slate-400 font-mono">
+            <div className="text-xs sm:text-sm text-slate-400 font-mono">
               Showing {filteredProjects.length} of {projects.length} Featured Case Studies
             </div>
           )}
@@ -58,9 +58,9 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
 
         {/* If no projects exist */}
         {projects.length === 0 ? (
-          <div className="py-20 px-6 text-center rounded-3xl bg-slate-950/60 border border-dashed border-slate-800 max-w-xl mx-auto space-y-3">
-            <Layers className="w-12 h-12 text-slate-600 mx-auto" />
-            <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif]">
+          <div className="py-16 sm:py-20 px-4 sm:px-6 text-center rounded-2xl sm:rounded-3xl bg-slate-950/60 border border-dashed border-slate-800 max-w-xl mx-auto space-y-3">
+            <Layers className="w-10 sm:w-12 h-10 sm:h-12 text-slate-600 mx-auto" />
+            <h3 className="text-lg sm:text-xl font-bold text-white font-['Outfit',sans-serif]">
               No project available
             </h3>
             <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
@@ -70,7 +70,7 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
         ) : (
           <>
             {/* Filter Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
+            <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 sm:mb-8 no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0">
               {filterTabs.map((tab) => {
                 const isActive = activeFilter === tab.id;
                 return (
@@ -78,7 +78,7 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveFilter(tab.id)}
-                    className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    className={`px-4 py-2.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer min-h-[44px] flex items-center justify-center shrink-0 ${
                       isActive
                         ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
                         : 'bg-slate-800/80 border border-slate-700 text-slate-300 hover:border-slate-600 hover:text-white'
@@ -97,7 +97,7 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
               </div>
             ) : (
               /* Project Cards Grid */
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {filteredProjects.map((project) => (
                   <div
                     key={project.id}
@@ -105,7 +105,7 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
                     id={`project-card-${project.id}`}
                   >
                     {/* Image with hover zoom */}
-                    <div className="relative h-56 w-full overflow-hidden">
+                    <div className="relative h-48 sm:h-56 w-full overflow-hidden">
                       <img
                         src={project.image}
                         alt={project.title}
@@ -115,38 +115,56 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
                       
                       <div className="absolute top-4 left-4">
-                        <span className="px-3 py-1 rounded-full bg-slate-900/90 text-teal-300 border border-teal-500/30 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
+                        <span className="px-3 py-1 rounded-full bg-slate-900/90 text-teal-300 border border-teal-500/30 text-[11px] sm:text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
                           {project.categoryName || project.category}
                         </span>
                       </div>
 
+                      {/* Proof of Work Video Badge if available */}
+                      {project.videoUrl && project.videoUrl.trim() && (
+                        <div className="absolute top-4 right-4">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenProjectModal(project);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-500/90 hover:bg-teal-400 text-white text-[11px] sm:text-xs font-bold tracking-wide shadow-lg shadow-teal-500/30 backdrop-blur-sm transition-transform hover:scale-105 cursor-pointer min-h-[36px]"
+                            title="Watch Proof of Work Video"
+                          >
+                            <Play className="w-3 h-3 fill-white" />
+                            <span>Proof of Work</span>
+                          </button>
+                        </div>
+                      )}
+
                       <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-slate-300">
                         <span className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-teal-400" />
+                          <MapPin className="w-3.5 h-3.5 text-teal-400 shrink-0" />
                           <span className="truncate">{project.location || 'Global'}</span>
                         </span>
                         <span className="flex items-center gap-1 font-mono">
-                          <Calendar className="w-3.5 h-3.5 text-teal-400" />
+                          <Calendar className="w-3.5 h-3.5 text-teal-400 shrink-0" />
                           <span>{project.year || '2025'}</span>
                         </span>
                       </div>
                     </div>
 
                     {/* Content */}
-                    <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                      <div className="space-y-2.5">
-                        <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif] group-hover:text-teal-400 transition-colors">
+                    <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="space-y-2">
+                        <h3 className="text-lg sm:text-xl font-bold text-white font-['Outfit',sans-serif] group-hover:text-teal-400 transition-colors">
                           {project.title}
                         </h3>
                         <p className="text-xs text-slate-400">
                           Client: <strong className="text-slate-300 font-medium">{project.client}</strong>
                         </p>
-                        <p className="text-sm text-slate-300 line-clamp-2 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-slate-300 line-clamp-2 leading-relaxed">
                           {project.summary}
                         </p>
 
                         {/* Impact highlights */}
-                        <div className="pt-3 flex flex-wrap gap-1.5">
+                        <div className="pt-2 flex flex-wrap gap-1.5">
                           {project.impactMetrics && project.impactMetrics.slice(0, 2).map((m, i) => (
                             <span key={i} className="px-2.5 py-1 rounded-md bg-teal-950/40 border border-teal-800/40 text-[11px] font-semibold text-teal-300">
                               {m}
@@ -155,14 +173,25 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
                         </div>
                       </div>
 
-                      <div className="pt-4 border-t border-slate-800/80">
+                      <div className="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center gap-2">
+                        {project.videoUrl && project.videoUrl.trim() && (
+                          <button
+                            type="button"
+                            onClick={() => onOpenProjectModal(project)}
+                            className="w-full sm:flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white text-xs font-bold transition-all duration-200 cursor-pointer shadow-md shadow-teal-600/25 min-h-[44px]"
+                            id={`watch-video-${project.id}`}
+                          >
+                            <Play className="w-3.5 h-3.5 fill-white" />
+                            <span>Watch Proof Video</span>
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => onOpenProjectModal(project)}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 text-slate-200 hover:text-white border border-slate-700 hover:border-transparent text-xs font-bold transition-all duration-200 cursor-pointer shadow-sm"
+                          className={`${project.videoUrl && project.videoUrl.trim() ? 'w-full sm:w-auto px-4' : 'w-full'} flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition-all duration-200 cursor-pointer shadow-sm min-h-[44px]`}
                           id={`view-case-study-${project.id}`}
                         >
-                          <span>Inspect Case Study</span>
+                          <span>{project.videoUrl && project.videoUrl.trim() ? 'Details' : 'Inspect Case Study'}</span>
                           <ExternalLink className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -175,9 +204,9 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
         )}
 
         {/* Global Delivery Banner */}
-        <div className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-slate-950 via-teal-950/30 to-slate-950 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
+        <div className="mt-12 sm:mt-16 p-5 sm:p-8 rounded-2xl bg-gradient-to-r from-slate-950 via-teal-950/30 to-slate-950 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6 shadow-xl">
           <div className="space-y-1 text-center sm:text-left">
-            <h4 className="text-lg font-bold text-white font-['Outfit',sans-serif]">
+            <h4 className="text-base sm:text-lg font-bold text-white font-['Outfit',sans-serif]">
               Have a high-scale project or conference in mind?
             </h4>
             <p className="text-xs sm:text-sm text-slate-400">
@@ -186,7 +215,7 @@ export default function ProjectsSection({ onOpenProjectModal }: ProjectsSectionP
           </div>
           <a
             href="#contact"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white font-bold text-sm shadow-md shadow-teal-600/25 whitespace-nowrap transition-colors cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white font-bold text-sm shadow-md shadow-teal-600/25 whitespace-nowrap transition-colors cursor-pointer min-h-[48px]"
             id="projects-cta-btn"
           >
             <span>Submit Project RFQ</span>

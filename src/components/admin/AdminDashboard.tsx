@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   FolderGit2, MessageSquareQuote, ShieldAlert, LogOut, ExternalLink, 
-  Radio, Layers, Database
+  /* [UNUSED - Candidate for removal]: Radio, Layers, */ Database
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import ProjectsTab from './ProjectsTab';
@@ -63,18 +63,28 @@ export default function AdminDashboard() {
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[60rem] h-[25rem] bg-teal-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
       {/* ADMIN HEADER */}
-      <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
           
           {/* Left: Branding & Status Indicator */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2">
-              <span className="font-mono font-black text-sm sm:text-base text-teal-400 tracking-wider bg-teal-500/10 px-2.5 py-1 rounded-lg border border-teal-500/25">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="font-mono font-black text-xs sm:text-base text-teal-400 tracking-wider bg-teal-500/10 px-2 sm:px-2.5 py-1 rounded-lg border border-teal-500/25">
                  ADMIN PORTAL 
               </span>
             </div>
 
-            {/* Status indicator */}
+            {/* Mobile Status Dot/Indicator */}
+            <div className={`flex sm:hidden items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono border ${
+              dbStatus.connected 
+                ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-300' 
+                : 'bg-amber-500/10 border-amber-500/25 text-amber-300'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${dbStatus.connected ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`} />
+              <span>{dbStatus.connected ? 'DB Live' : 'Local'}</span>
+            </div>
+
+            {/* Desktop Status indicator */}
             <div className={`hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono border ${
               dbStatus.connected 
                 ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-300' 
@@ -84,12 +94,12 @@ export default function AdminDashboard() {
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${dbStatus.connected ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                 <span className={`relative inline-flex rounded-full h-2 w-2 ${dbStatus.connected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
               </span>
-              <span>{dbStatus.connected ? 'PostgreSQL Live|Connected' : 'Local Storage Mode|Database not connected'}</span>
+              <span>{dbStatus.connected ? 'PostgreSQL Live | Connected' : 'Local Storage Mode | Database not connected'}</span>
             </div>
           </div>
 
           {/* Right: Logged in info & Actions */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <div className="text-right hidden md:block">
               <div className="text-xs font-semibold text-white">
                 Logged in as: <span className="text-teal-300 font-mono font-bold">{adminSettings.username || 'Admin'}</span>
@@ -108,7 +118,7 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={() => navigateTo('public')}
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer min-h-[38px]"
               title="Open Public Website"
               id="admin-view-website-btn"
             >
@@ -120,7 +130,7 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={handleLogout}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-red-950/40 border border-red-800/40 text-red-300 hover:bg-red-900/50 hover:border-red-700 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-red-950/40 border border-red-800/40 text-red-300 hover:bg-red-900/50 hover:border-red-700 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer min-h-[38px]"
               id="admin-logout-btn"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -130,8 +140,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* NAVIGATION TABS WITH SLIDING HIGHLIGHT PILL */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-900/80">
-          <div className="flex items-center space-x-1 sm:space-x-2 py-2.5 overflow-x-auto no-scrollbar">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-t border-slate-900/80">
+          <div className="flex items-center space-x-1 sm:space-x-2 py-2 overflow-x-auto no-scrollbar -mx-3 px-3 sm:mx-0 sm:px-0 scroll-smooth touch-pan-x">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;
               const Icon = tab.icon;
@@ -141,7 +151,7 @@ export default function AdminDashboard() {
                   key={tab.id}
                   type="button"
                   onClick={() => handleTabChange(tab.id)}
-                  className={`relative px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors duration-200 cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  className={`relative px-3 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors duration-200 cursor-pointer flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 min-h-[40px] ${
                     isActive ? 'text-white' : 'text-slate-400 hover:text-slate-200'
                   }`}
                   id={`admin-tab-${tab.id}`}
@@ -155,8 +165,8 @@ export default function AdminDashboard() {
                     />
                   )}
 
-                  <span className="relative z-10 flex items-center gap-2">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <span className="relative z-10 flex items-center gap-1.5 sm:gap-2">
+                    <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                     <span>{tab.label}</span>
                   </span>
                 </button>
@@ -167,7 +177,7 @@ export default function AdminDashboard() {
       </header>
 
       {/* MAIN CONTENT AREA WITH HORIZONTAL SLIDING TRANSITIONS */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative overflow-hidden">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 relative overflow-hidden">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={activeTab}

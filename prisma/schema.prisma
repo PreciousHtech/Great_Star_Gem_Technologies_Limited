@@ -1,4 +1,4 @@
-// This is your Prisma schema file for Great Star Gem Enterprise Portal
+// Prisma schema file for Great Star Gem Enterprise Portal
 // Configured for PostgreSQL (Supabase / Cloud SQL)
 
 datasource db {
@@ -22,7 +22,7 @@ model Project {
   summary       String   @db.Text
   challenge     String?  @db.Text
   solution      String?  @db.Text
-  impactMetrics String[]
+  videoUrl      String?  @db.Text
   liveUrl       String?
   githubUrl     String?
   status        String   @default("published")

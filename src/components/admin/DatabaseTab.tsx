@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, ChangeEvent } from 'react';
 import { 
-  Database, RefreshCw, CheckCircle2, AlertTriangle, ShieldCheck, 
-  Terminal, Server, Layers, ArrowUpRight, Copy, Check,
+  Database, RefreshCw, CheckCircle2, AlertTriangle, ShieldCheck, Server, Layers, Copy, Check,
   Eye, Trash2, Mail, Phone, Calendar, Search, X, AlertCircle, MessageSquare
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
@@ -22,7 +21,6 @@ export default function DatabaseTab() {
   const { dbStatus, checkDbStatus, initAndSeedDatabase } = useData();
   const [syncing, setSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<{ success: boolean; message: string } | null>(null);
-  const [copiedUrl, setCopiedUrl] = useState(false);
   const [inquiries, setInquiries] = useState<InquiryItem[]>([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
 
@@ -35,7 +33,6 @@ export default function DatabaseTab() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [inquiryFeedback, setInquiryFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const sampleConnectionUri = 'postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true';
 
   const loadInquiries = async () => {
     setLoadingInquiries(true);
@@ -53,17 +50,6 @@ export default function DatabaseTab() {
       setLoadingInquiries(false);
     }
   };
-
-  useEffect(() => {
-    loadInquiries();
-  }, []);
-
-  const handleCopyUri = () => {
-    navigator.clipboard.writeText(sampleConnectionUri);
-    setCopiedUrl(true);
-    setTimeout(() => setCopiedUrl(false), 2000);
-  };
-
   const handleSyncDb = async () => {
     setSyncing(true);
     setSyncFeedback(null);
@@ -273,14 +259,14 @@ export default function DatabaseTab() {
           <div className="flex items-start gap-2 bg-slate-900/80 p-3 rounded-xl border border-slate-800/80">
             <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
             <div>
-              <strong className="text-slate-200">Graceful Local Fallback:</strong> If DATABASE_URL is not provided or undergoing maintenance, the portal seamlessly uses local state without throwing client errors.
+              <strong className="text-slate-200">Graceful Local Fallback:</strong> If database url is not provided or undergoing maintenance, the portal seamlessly uses local state without throwing client errors.
             </div>
           </div>
         </div>
       </div>
 
       {/* Client Consultation Inquiries Table */}
-      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+      <div className="p-4 sm:p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-bold text-white flex items-center gap-2">

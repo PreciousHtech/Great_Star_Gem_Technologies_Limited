@@ -331,13 +331,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
         if (created && created.id) {
           newProject = created;
         }
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        console.error('API add project error from server:', res.status, errJson);
       }
     } catch (err) {
       console.warn('API add project fallback to local:', err);
     }
 
     setProjects((prev) => {
-      const updated = [newProject, ...prev];
+      const filtered = prev.filter((p) => p.id !== newProject.id);
+      const updated = [newProject, ...filtered];
       try {
         localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(updated));
       } catch (e) {
@@ -346,6 +350,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       return updated;
     });
 
+    checkDbStatus();
     return newProject;
   };
 
@@ -361,14 +366,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
     });
 
     try {
-      await fetch(`/api/projects/${id}`, {
+      const res = await fetch(`/api/projects/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedFields),
       });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        console.error('API update project error from server:', res.status, errJson);
+      }
     } catch (err) {
       console.warn('API update project warning:', err);
     }
+
+    checkDbStatus();
   };
 
   const deleteProject = async (id: string) => {
@@ -389,6 +400,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.warn('API delete project warning:', err);
     }
+
+    checkDbStatus();
   };
 
   const deleteAllProjects = async (): Promise<{ success: boolean; message?: string }> => {
@@ -403,9 +416,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
         method: 'DELETE',
       });
       const data = await res.json();
+      checkDbStatus();
       return { success: true, message: data.message || 'All projects deleted successfully.' };
     } catch (err) {
       console.warn('API delete all projects warning:', err);
+      checkDbStatus();
       return { success: true, message: 'All projects cleared.' };
     }
   };

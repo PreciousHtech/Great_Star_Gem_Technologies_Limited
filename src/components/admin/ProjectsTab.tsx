@@ -1,10 +1,12 @@
-import { useState, FormEvent } from 'react';
+import { useState, useRef, ChangeEvent, FormEvent } from 'react';
 import { 
-  Plus, Edit3, Trash2, ExternalLink, Code2, Globe, 
-  X, Check, AlertCircle, RefreshCw, Layers
+  Plus, Edit3, Trash2, ExternalLink, Code2, X, Check, AlertCircle, RefreshCw, Layers, Video, FolderOpen, Play, Cloud, Sparkles, Loader2
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { ProjectItem, ServiceCategory } from '../../types';
+import ProjectVideoPlayer from '../ProjectVideoPlayer';
+import { uploadFileToSupabaseStorage, validateFileSize, MAX_MEDIA_SIZE_MB } from '../../utils/storageClient';
+import FileSizeAlertModal, { FileSizeAlertDetails } from './FileSizeAlertModal';
 
 const CATEGORY_OPTIONS: { id: ServiceCategory; name: string }[] = [
   { id: 'web-application', name: 'Web Application' },
@@ -28,23 +30,177 @@ export default function ProjectsTab() {
   const [category, setCategory] = useState<ServiceCategory>('web-application');
   const [client, setClient] = useState('');
   const [image, setImage] = useState('');
+  const [imageFileName, setImageFileName] = useState('');
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [imageUploadStatus, setImageUploadStatus] = useState<string | null>(null);
+  const [imageStorageType, setImageStorageType] = useState<'supabase' | 'external' | 'local' | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Video states
+  const [videoUrl, setVideoUrl] = useState('');
+  const [videoFileName, setVideoFileName] = useState('');
+  const [isProcessingVideo, setIsProcessingVideo] = useState(false);
+  const [videoUploadStatus, setVideoUploadStatus] = useState<string | null>(null);
+  const [videoStorageType, setVideoStorageType] = useState<'supabase' | 'external' | 'local' | null>(null);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const videoFileInputRef = useRef<HTMLInputElement>(null);
+
+  // File size limit modal alert state
+  const [sizeAlertDetails, setSizeAlertDetails] = useState<FileSizeAlertDetails | null>(null);
+
   const [summary, setSummary] = useState('');
+  const [challenge, setChallenge] = useState('');
+  const [solution, setSolution] = useState('');
   const [liveUrl, setLiveUrl] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
   const [metric1, setMetric1] = useState('');
   const [metric2, setMetric2] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   // Delete modal confirmation
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  const handleImageFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageError(null);
+
+    // Validate 50MB file limit
+    const sizeValidation = validateFileSize(file, MAX_MEDIA_SIZE_MB);
+    if (!sizeValidation.valid) {
+      setImageError(sizeValidation.error || `Image exceeds ${MAX_MEDIA_SIZE_MB}MB limit.`);
+      setSizeAlertDetails({
+        fileName: file.name,
+        fileSizeBytes: file.size,
+        fileType: 'image',
+        actionContext: 'Project Cover Image'
+      });
+      if (imageFileInputRef.current) imageFileInputRef.current.value = '';
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setImageError('Please select a valid image file (JPEG, PNG, WebP, etc.).');
+      if (imageFileInputRef.current) imageFileInputRef.current.value = '';
+      return;
+    }
+
+    setIsProcessingImage(true);
+    setImageFileName(file.name);
+    setImageUploadStatus('Uploading image to Supabase Storage bucket...');
+
+    // Attempt direct Supabase Storage bucket upload
+    const uploadRes = await uploadFileToSupabaseStorage(file, 'Cover_image', (msg) => {
+      setImageUploadStatus(msg);
+    });
+
+    if (uploadRes.success && uploadRes.url) {
+      // Direct public CDN URL returned from Supabase bucket!
+      setImage(uploadRes.url);
+      setImageStorageType('supabase');
+      setImageUploadStatus('✓ Uploaded to Supabase Storage CDN.');
+      setIsProcessingImage(false);
+      return;
+    }
+
+    // Graceful fallback to data URL if Supabase Storage API key is pending
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const data = ev.target?.result as string;
+      setImage(data);
+      setImageStorageType('local');
+      setImageUploadStatus(uploadRes.requiresKey 
+        ? 'Using local preview (Add Supabase API Key in Database tab for Cloud CDN)' 
+        : 'Image attached');
+      setIsProcessingImage(false);
+    };
+    reader.onerror = () => {
+      setIsProcessingImage(false);
+      setImageFileName('');
+      setImageUploadStatus(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleVideoFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setVideoError(null);
+
+    // Validate 50MB file limit
+    const sizeValidation = validateFileSize(file, MAX_MEDIA_SIZE_MB);
+    if (!sizeValidation.valid) {
+      setVideoError(sizeValidation.error || `Video file exceeds ${MAX_MEDIA_SIZE_MB}MB.`);
+      setSizeAlertDetails({
+        fileName: file.name,
+        fileSizeBytes: file.size,
+        fileType: 'video',
+        actionContext: 'Proof of Work Video Demonstration'
+      });
+      if (videoFileInputRef.current) videoFileInputRef.current.value = '';
+      return;
+    }
+
+    setIsProcessingVideo(true);
+    setVideoFileName(file.name);
+    setVideoUploadStatus('Uploading video to Supabase Storage bucket...');
+
+    // Attempt direct Supabase Storage bucket upload
+    const uploadRes = await uploadFileToSupabaseStorage(file, 'Videos', (msg) => {
+      setVideoUploadStatus(msg);
+    });
+
+    if (uploadRes.success && uploadRes.url) {
+      // Direct public CDN URL returned from Supabase bucket!
+      // This URL string is saved directly as a text field in Postgres via Prisma.
+      setVideoUrl(uploadRes.url);
+      setVideoStorageType('supabase');
+      setVideoUploadStatus('✓ Uploaded to Supabase Storage bucket (CDN). Ready to publish.');
+      setIsProcessingVideo(false);
+      return;
+    }
+
+    // If Supabase API key is pending or needs configuration, fall back gracefully
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const data = ev.target?.result as string;
+      setVideoUrl(data);
+      setVideoStorageType('local');
+      setVideoUploadStatus(uploadRes.requiresKey 
+        ? 'Local preview active (Connect Supabase API Key in Database tab to stream via Supabase CDN)'
+        : 'Video attached');
+      setIsProcessingVideo(false);
+    };
+    reader.onerror = () => {
+      setIsProcessingVideo(false);
+      setVideoFileName('');
+      setVideoUploadStatus(null);
+      setVideoError('Failed to read video file from local storage.');
+    };
+    reader.readAsDataURL(file);
+  };
 
   const openNewProjectModal = () => {
     setEditingProjectId(null);
     setTitle('');
     setCategory('web-application');
     setClient('');
-    setImage('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80');
+    setImage('/GreatStarGem_Logo.png'); // If no cover image, This image URL is used as the cover image for the project
+    setImageFileName('');
+    setImageUploadStatus(null);
+    setImageStorageType(null);
+    setVideoUrl('');
+    setVideoFileName('');
+    setVideoUploadStatus(null);
+    setVideoStorageType(null);
+    setVideoError(null);
+    if (imageFileInputRef.current) imageFileInputRef.current.value = '';
+    if (videoFileInputRef.current) videoFileInputRef.current.value = '';
     setSummary('');
+    setChallenge('');
+    setSolution('');
     setLiveUrl('');
     setGithubUrl('');
     setMetric1('99.99% Cloud SLA');
@@ -58,7 +214,17 @@ export default function ProjectsTab() {
     setCategory(proj.category);
     setClient(proj.client || '');
     setImage(proj.image || '');
+    setImageFileName(proj.image?.startsWith('data:') ? 'Uploaded image' : '');
+    setImageStorageType(proj.image?.includes('supabase.co') ? 'supabase' : null);
+    setImageUploadStatus(proj.image?.includes('supabase.co') ? '✓ Stored in Supabase Storage CDN' : null);
+    setVideoUrl(proj.videoUrl || '');
+    setVideoFileName(proj.videoUrl?.startsWith('data:') ? 'Uploaded video clip' : '');
+    setVideoStorageType(proj.videoUrl?.includes('supabase.co') ? 'supabase' : null);
+    setVideoUploadStatus(proj.videoUrl?.includes('supabase.co') ? '✓ Stored in Supabase Storage CDN' : null);
+    setVideoError(null);
     setSummary(proj.summary || '');
+    setChallenge(proj.challenge || '');
+    setSolution(proj.solution || '');
     setLiveUrl(proj.liveUrl || '');
     setGithubUrl(proj.githubUrl || '');
     setMetric1(proj.impactMetrics?.[0] || '');
@@ -66,50 +232,63 @@ export default function ProjectsTab() {
     setIsModalOpen(true);
   };
 
-  const handleSaveProject = (e: FormEvent) => {
+  const handleSaveProject = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !summary.trim()) return;
 
-    const matchedCat = CATEGORY_OPTIONS.find((c) => c.id === category);
-    const categoryName = matchedCat ? matchedCat.name : 'Web Applications';
-    const metrics = [metric1, metric2].filter(Boolean);
+    setIsSaving(true);
+    try {
+      const matchedCat = CATEGORY_OPTIONS.find((c) => c.id === category);
+      const categoryName = matchedCat ? matchedCat.name : 'Web Applications';
+      const metrics = [metric1, metric2].filter(Boolean);
 
-    if (editingProjectId) {
-      updateProject(editingProjectId, {
-        title,
-        category,
-        categoryName,
-        client: client || 'Private Enterprise',
-        image: image || 'https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=800&q=80',
-        summary,
-        liveUrl,
-        githubUrl,
-        impactMetrics: metrics.length > 0 ? metrics : ['Verified Delivery'],
-        status: 'published'
-      });
-      setStatusMessage(`Project "${title}" updated successfully.`);
-    } else {
-      addProject({
-        title,
-        category,
-        categoryName,
-        client: client || 'Enterprise Partner',
-        year: new Date().getFullYear().toString(),
-        location: 'Global / Multi-region',
-        image: image || 'https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=800&q=80',
-        summary,
-        challenge: 'Architecting scalable cloud modules and sub-second response times.',
-        solution: 'Built robust modern microservices and modular UI components.',
-        liveUrl,
-        githubUrl,
-        impactMetrics: metrics.length > 0 ? metrics : ['Production Live', '100% Verified'],
-        status: 'published'
-      });
-      setStatusMessage(`Project "${title}" published live.`);
+      if (editingProjectId) {
+        await updateProject(editingProjectId, {
+          title,
+          category,
+          categoryName,
+          client: client || 'Private Enterprise',
+          image: image || 'https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=800&q=80',
+          videoUrl: videoUrl.trim(),
+          summary,
+          challenge: challenge.trim() || 'Engineered high-efficiency technical solution under complex real-world constraints.',
+          solution: solution.trim() || 'Designed and deployed turnkey engineering architecture with measurable operational impact.',
+          liveUrl,
+          githubUrl,
+          impactMetrics: metrics.length > 0 ? metrics : ['Verified Delivery'],
+          status: 'published'
+        });
+        setStatusMessage(`Project "${title}" updated and saved to database.`);
+      } else {
+        await addProject({
+          title,
+          category,
+          categoryName,
+          client: client || 'Enterprise Partner',
+          year: new Date().getFullYear().toString(),
+          location: 'Global / Multi-region',
+          image: image || 'https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=800&q=80',
+          videoUrl: videoUrl.trim(),
+          summary,
+          challenge: challenge.trim() || 'Architecting scalable cloud modules and sub-second response times.',
+          solution: solution.trim() || 'Built robust modern microservices and modular UI components.',
+          liveUrl,
+          githubUrl,
+          impactMetrics: metrics.length > 0 ? metrics : ['Production Live', '100% Verified'],
+          status: 'published'
+        });
+        setStatusMessage(`Project "${title}" published and saved to database.`);
+      }
+
+      setIsModalOpen(false);
+      setTimeout(() => setStatusMessage(null), 3500);
+    } catch (err) {
+      console.error('Error saving project:', err);
+      setStatusMessage('Warning: Encountered an issue while saving project.');
+      setTimeout(() => setStatusMessage(null), 3500);
+    } finally {
+      setIsSaving(false);
     }
-
-    setIsModalOpen(false);
-    setTimeout(() => setStatusMessage(null), 3500);
   };
 
   const handleDelete = (id: string) => {
@@ -214,7 +393,13 @@ export default function ProjectsTab() {
                   </span>
                 </div>
 
-                <div className="absolute top-3 right-3">
+                <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                  {project.videoUrl && project.videoUrl.trim() && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-teal-500/20 text-teal-300 border border-teal-500/40 flex items-center gap-1 shadow-sm">
+                      <Video className="w-3 h-3 text-teal-400" />
+                      <span>Video</span>
+                    </span>
+                  )}
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                     Live
                   </span>
@@ -341,21 +526,22 @@ export default function ProjectsTab() {
 
       {/* Edit / Add Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-2xl bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <div className="w-full max-w-2xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-6 right-6 p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Close modal"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="mb-6">
+            <div className="mb-6 pr-10">
               <span className="text-xs font-mono font-bold text-teal-400 uppercase tracking-wider">
                 {editingProjectId ? 'EDIT PROJECT' : 'PUBLISH SHOWCASE'}
               </span>
-              <h3 className="text-xl font-bold text-white font-['Outfit',sans-serif] mt-1">
+              <h3 className="text-lg sm:text-xl font-bold text-white font-['Outfit',sans-serif] mt-1">
                 {editingProjectId ? 'Modify Project Details' : 'Upload New Developer Showcase Project'}
               </h3>
             </div>
@@ -409,17 +595,242 @@ export default function ProjectsTab() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Image URL
-                  </label>
-                  <input
-                    type="url"
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                      <span>Project Cover Image *</span>
+                      <span className="text-[10px] font-mono text-amber-400/90 font-normal">(Max 50MB)</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {imageStorageType === 'supabase' || image?.includes('supabase.co') ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                          <Cloud className="w-2.5 h-2.5 text-emerald-400" />
+                          Supabase CDN
+                        </span>
+                      ) : null}
+                      {image && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImage('');
+                            setImageFileName('');
+                            setImageUploadStatus(null);
+                            setImageStorageType(null);
+                            if (imageFileInputRef.current) imageFileInputRef.current.value = '';
+                          }}
+                          className="text-[11px] text-red-400 hover:text-red-300 flex items-center gap-0.5 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                          <span>Clear</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <input
+                      type="text"
+                      value={imageFileName || (image.startsWith('data:') ? 'Uploaded from folder' : image)}
+                      onChange={(e) => {
+                        setImage(e.target.value);
+                        setImageFileName('');
+                        setImageStorageType(null);
+                        setImageUploadStatus(null);
+                      }}
+                      placeholder="Paste image URL or browse folder..."
+                      className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm sm:text-xs focus:outline-none focus:border-teal-500 truncate min-h-[42px]"
+                    />
+                    <input
+                      type="file"
+                      ref={imageFileInputRef}
+                      onChange={handleImageFileUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => imageFileInputRef.current?.click()}
+                      disabled={isProcessingImage}
+                      className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 min-h-[42px]"
+                      title="Browse image from folder (Max 5MB)"
+                    >
+                      {isProcessingImage ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 text-teal-400 animate-spin" />
+                          <span>Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FolderOpen className="w-3.5 h-3.5 text-teal-400" />
+                          <span>Browse Image</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  {imageError && (
+                    <div className="mt-2 p-3 rounded-xl bg-red-950/60 border border-red-800/60 text-red-300 text-xs flex items-center justify-between gap-2 animate-in fade-in">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                        <span>{imageError}</span>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={() => setImageError(null)} 
+                        className="text-red-400 hover:text-white"
+                        aria-label="Dismiss error"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                  {imageUploadStatus && !imageError && (
+                    <div className="text-[11px] text-teal-300/90 font-mono mt-1.5 flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3 text-teal-400 shrink-0" />
+                      <span>{imageUploadStatus}</span>
+                    </div>
+                  )}
                 </div>
+              </div>
+
+              {/* Proof of Work Video (Short Video or URL) & Live Preview */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/80 border border-teal-500/30 space-y-3.5 shadow-inner">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-300 shrink-0">
+                      <Video className="w-4 h-4 text-teal-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 flex-wrap">
+                        <span>Proof of Work Video (Video Upload or Link)</span>
+                        <span className="px-2 py-0.5 rounded text-[9px] uppercase font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                          Max 50MB
+                        </span>
+                        {videoStorageType === 'supabase' || videoUrl?.includes('supabase.co') ? (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                            <Cloud className="w-2.5 h-2.5 text-emerald-400" />
+                            Supabase Storage Bucket URL
+                          </span>
+                        ) : null}
+                      </h4>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    {videoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVideoUrl('');
+                          setVideoFileName('');
+                          setVideoError(null);
+                          setVideoUploadStatus(null);
+                          setVideoStorageType(null);
+                          if (videoFileInputRef.current) videoFileInputRef.current.value = '';
+                        }}
+                        className="text-[11px] text-red-400 hover:text-red-300 flex items-center gap-0.5 cursor-pointer"
+                        title="Remove video"
+                      >
+                        <X className="w-3 h-3" />
+                        <span>Remove</span>
+                      </button>
+                    )}
+                    <span className="text-[11px] text-teal-400 font-semibold truncate max-w-[150px]">
+                      {videoFileName || (videoUrl ? 'Video Attached' : 'Optional')}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Upload a short video demonstration from your device or paste a video link (MP4, YouTube, Vimeo, Loom). When uploaded, the video is saved to your Supabase Storage bucket and its public CDN URL is saved directly into PostgreSQL via Prisma.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <input
+                    type="text"
+                    value={videoFileName || (videoUrl.startsWith('data:') ? 'Uploaded video clip' : videoUrl)}
+                    onChange={(e) => {
+                      setVideoUrl(e.target.value);
+                      setVideoFileName('');
+                      setVideoError(null);
+                      setVideoStorageType(null);
+                      setVideoUploadStatus(null);
+                    }}
+                    placeholder="Paste video URL (YouTube, Vimeo, Loom, MP4) or browse folder..."
+                    className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm sm:text-xs focus:outline-none focus:border-teal-500 truncate min-h-[42px]"
+                  />
+
+                  <input
+                    type="file"
+                    ref={videoFileInputRef}
+                    onChange={handleVideoFileUpload}
+                    accept="video/mp4,video/webm,video/ogg,video/quicktime,video/*"
+                    className="hidden"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => videoFileInputRef.current?.click()}
+                    disabled={isProcessingVideo}
+                    className="px-3.5 py-2.5 rounded-xl bg-teal-600/20 hover:bg-teal-600/30 text-teal-300 border border-teal-500/40 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 min-h-[42px]"
+                    title="Upload short video demonstration from local folder"
+                  >
+                    {isProcessingVideo ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 text-teal-400 animate-spin" />
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FolderOpen className="w-3.5 h-3.5 text-teal-400" />
+                        <span>Browse Video</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {videoUploadStatus && (
+                  <div className="text-[11px] text-teal-300 font-mono flex items-center gap-1.5 pt-1">
+                    <Sparkles className="w-3 h-3 text-teal-400 shrink-0" />
+                    <span>{videoUploadStatus}</span>
+                  </div>
+                )}
+
+                {videoError && (
+                  <div className="mt-2 p-3 rounded-xl bg-red-950/60 border border-red-800/60 text-red-300 text-xs flex items-center justify-between gap-2 animate-in fade-in">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                      <span>{videoError}</span>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => setVideoError(null)} 
+                      className="text-red-400 hover:text-white"
+                      aria-label="Dismiss error"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Live Interactive Video Preview inside Admin */}
+                {videoUrl && videoUrl.trim() && (
+                  <div className="pt-2 border-t border-slate-900/80 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                        <Play className="w-3 h-3 text-teal-400 fill-teal-400" />
+                        <span>Interactive Proof of Work Preview (Public Website View):</span>
+                      </span>
+                      <span className="text-[10px] text-teal-400 font-mono">
+                        {videoFileName ? `File: ${videoFileName}` : 'External Embed'}
+                      </span>
+                    </div>
+
+                    <div className="max-w-md mx-auto">
+                      <ProjectVideoPlayer
+                        videoUrl={videoUrl}
+                        posterImage={image}
+                        title={title || 'Proof of Work Preview'}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -434,6 +845,48 @@ export default function ProjectsTab() {
                   placeholder="Describe technical architecture, modules implemented, deliverables, and performance results..."
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-500 resize-none"
                 />
+              </div>
+
+              {/* The Engineering Challenge & The GreatStarGem Solution (Admin editable) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-950/70 border border-slate-800">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-red-400 uppercase tracking-wider">
+                      The Engineering Challenge
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">Modal Field</span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    value={challenge}
+                    onChange={(e) => setChallenge(e.target.value)}
+                    placeholder="Type the specific technical problem, obstacle, or architectural bottleneck faced in this project..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-red-500/70 resize-none transition-colors"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Displayed in the project detail modal under "THE ENGINEERING CHALLENGE".
+                  </p>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                      The GreatStarGem Solution
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">Modal Field</span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    value={solution}
+                    onChange={(e) => setSolution(e.target.value)}
+                    placeholder="Type the GreatStarGem technical solution, engineering strategy, and deliverables implemented..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-emerald-500/70 resize-none transition-colors"
+                  />
+                    
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Displayed in the project detail modal under "THE GREATSTARGEM SOLUTION".
+                  </p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -492,19 +945,27 @@ export default function ProjectsTab() {
                 </div>
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-900">
+              <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 border-t border-slate-900">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 cursor-pointer min-h-[44px] flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 cursor-pointer"
+                  disabled={isSaving || isProcessingVideo || isProcessingImage}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 min-h-[44px]"
                 >
-                  {editingProjectId ? 'Save Changes' : '+ Publish Project Live'}
+                  {isSaving ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving to Database...</span>
+                    </>
+                  ) : (
+                    <span>{editingProjectId ? 'Save Changes' : '+ Publish Project Live'}</span>
+                  )}
                 </button>
               </div>
             </form>
@@ -579,6 +1040,12 @@ export default function ProjectsTab() {
           </div>
         </div>
       )}
+
+      {/* File Size Limit Alert Modal */}
+      <FileSizeAlertModal
+        details={sizeAlertDetails}
+        onClose={() => setSizeAlertDetails(null)}
+      />
     </div>
   );
 }

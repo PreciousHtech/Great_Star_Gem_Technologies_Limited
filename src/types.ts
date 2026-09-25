@@ -21,6 +21,10 @@ export interface ServiceItem {
   badge: string;
 }
 
+export const PROJECTS_DATA: ProjectItem[] = [];
+
+export const TESTIMONIALS_DATA: TestimonialItem[] = [];
+
 export interface ProjectItem {
   id: string;
   title: string;
@@ -34,6 +38,7 @@ export interface ProjectItem {
   challenge?: string;
   solution?: string;
   impactMetrics?: string[];
+  videoUrl?: string | null;
   liveUrl?: string;
   githubUrl?: string;
   status?: 'published' | 'draft';

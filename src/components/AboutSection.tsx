@@ -6,7 +6,7 @@ export default function AboutSection() {
   const [activeTab, setActiveTab] = useState<'vision' | 'reach' | 'synergy'>('vision');
 
   return (
-    <section id="about" className="py-24 sm:py-32 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-slate-100 relative overflow-hidden">
+    <section id="about" className="py-16 sm:py-24 lg:py-32 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-slate-100 relative overflow-hidden">
       {/* Background accents */}
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-teal-900/15 rounded-full blur-3xl pointer-events-none" />
@@ -18,57 +18,57 @@ export default function AboutSection() {
           <div className="inline-flex items-center px-3.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold uppercase tracking-wider mb-4">
             <span>About GreatStarGem</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight leading-tight">
             A Multidisciplinary Conglomerate Built on Rigor & Global Vision
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-slate-300 leading-relaxed">
+          <p className="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-300 leading-relaxed">
             Established to bridge structural infrastructure, renewable energy independence, and digital transformation, 
             <strong className="text-white font-semibold"> GreatStarGem</strong> unites international event architects, civil engineers, renewable energy pioneers, real estate developers, and ICT systems consultants under one unified standard of excellence.
           </p>
         </div>
 
         {/* Interactive Pillar Tabs */}
-        <div className="mt-12 bg-slate-950/70 border border-slate-800 rounded-2xl p-6 sm:p-8 backdrop-blur-sm shadow-xl">
-          <div className="flex flex-wrap items-center gap-3 border-b border-slate-800 pb-5">
+        <div className="mt-8 sm:mt-12 bg-slate-950/70 border border-slate-800 rounded-2xl p-4 sm:p-8 backdrop-blur-sm shadow-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 border-b border-slate-800 pb-5">
             <button
               type="button"
               onClick={() => setActiveTab('vision')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer min-h-[44px] ${
                 activeTab === 'vision'
                   ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
                   : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700/80'
               }`}
               id="about-tab-vision"
             >
-              <Target className="w-4 h-4" />
+              <Target className="w-4 h-4 shrink-0" />
               <span>Vision & Mission</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab('reach')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer min-h-[44px] ${
                 activeTab === 'reach'
                   ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
                   : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700/80'
               }`}
               id="about-tab-reach"
             >
-              <Compass className="w-4 h-4" />
+              <Compass className="w-4 h-4 shrink-0" />
               <span>Global & Local Reach</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab('synergy')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer min-h-[44px] ${
                 activeTab === 'synergy'
                   ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md shadow-teal-600/25'
                   : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700/80'
               }`}
               id="about-tab-synergy"
             >
-              <Network className="w-4 h-4" />
+              <Network className="w-4 h-4 shrink-0" />
               <span>Multi-Sector Synergy</span>
             </button>
           </div>

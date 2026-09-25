@@ -8,10 +8,7 @@ import {
   CheckCircle2, 
   HelpCircle, 
   ChevronDown, 
-  ChevronUp, 
-  Building2,
-  Calendar,
-  MessageSquare
+  ChevronUp
 } from 'lucide-react';
 import { FAQS_DATA, SERVICES_DATA } from '../data/content';
 import { ServiceCategory, ConsultationFormData } from '../types';
@@ -81,23 +78,23 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
   };
 
   return (
-    <section id="contact" className="py-24 sm:py-32 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-white relative">
+    <section id="contact" className="py-16 sm:py-24 lg:py-32 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-white relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold uppercase tracking-wider mb-4">
             <span>Initiate Engagement</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
             Connect with GreatStarGem
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-slate-400">
+          <p className="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-400">
             Request an engineering proposal, international conference tender, EPC solar audit, real estate investment prospectus, or ICT consulting roadmap.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
           {/* Left Column: Direct Info & FAQs */}
           <div className="lg:col-span-5 space-y-8">
@@ -220,7 +217,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
 
           {/* Right Column: Interactive Consultation & RFQ Form */}
           <div className="lg:col-span-7">
-            <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative">
+            <div className="bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 lg:p-10 shadow-2xl relative">
               
               {submittedRef ? (
                 /* Success Confirmation State */
@@ -233,7 +230,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                     <span className="text-xs uppercase font-mono tracking-wider text-teal-400 font-semibold">
                       Inquiry Dispatched Successfully
                     </span>
-                    <h3 className="text-2xl font-bold text-white font-['Outfit',sans-serif]">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white font-['Outfit',sans-serif]">
                       Thank You, {formData.fullName || 'Partner'}
                     </h3>
                     <p className="text-sm text-slate-300 leading-relaxed">
@@ -251,7 +248,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                     <button
                       type="button"
                       onClick={handleResetForm}
-                      className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                      className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-colors cursor-pointer min-h-[44px]"
                     >
                       Submit Another Inquiry
                     </button>
@@ -261,7 +258,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                 /* Main Form */
                 <form onSubmit={handleSubmit} className="space-y-5" id="consultation-rfq-form">
                   <div className="border-b border-slate-800 pb-4">
-                    <h3 className="text-2xl font-bold text-white font-['Outfit',sans-serif]">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white font-['Outfit',sans-serif]">
                       Project Consultation & Proposal Request
                     </h3>
                     <p className="text-xs text-slate-400 mt-1">
@@ -278,7 +275,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                       value={formData.service}
                       onChange={(e) => setFormData({ ...formData, service: e.target.value as ServiceCategory })}
                       required
-                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-base sm:text-sm focus:outline-none focus:border-teal-500 transition-colors min-h-[48px]"
                       id="form-select-service"
                     >
                       <option value="">-- Choose a Service Vertical --</option>
@@ -302,7 +299,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                         placeholder="e.g. Dr. Kwame Mensah / Apex Consortium"
-                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-base sm:text-sm focus:outline-none focus:border-teal-500 transition-colors min-h-[48px]"
                         id="form-input-name"
                       />
                     </div>
@@ -317,7 +314,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         placeholder="name@organization.com"
-                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-base sm:text-sm focus:outline-none focus:border-teal-500 transition-colors min-h-[48px]"
                         id="form-input-email"
                       />
                     </div>
@@ -335,7 +332,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         placeholder="+234 ... / +44 ..."
-                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-base sm:text-sm focus:outline-none focus:border-teal-500 transition-colors min-h-[48px]"
                         id="form-input-phone"
                       />
                     </div>
@@ -347,7 +344,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                       <select
                         value={formData.estimatedTimeline}
                         onChange={(e) => setFormData({ ...formData, estimatedTimeline: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-base sm:text-sm focus:outline-none focus:border-teal-500 transition-colors min-h-[48px]"
                         id="form-select-timeline"
                       >
                         <option value="immediate">Immediate (Within 30 Days)</option>
@@ -369,7 +366,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       placeholder="Detail your capacity requirements (e.g., number of conference delegates, megawatts of solar, civil site square meters, or ICT modernization scope)..."
-                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-teal-500 transition-colors"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-base sm:text-sm focus:outline-none focus:border-teal-500 transition-colors"
                       id="form-input-message"
                     />
                   </div>
@@ -380,12 +377,12 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                     <span>All technical drawings, budgets, and strategic details are protected by strict NDA.</span>
                   </div>
 
-                  {/* Submit Button: Purple-button */}
+                  {/* Submit Button */}
                   <div className="pt-2">
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-xl font-bold text-sm sm:text-base bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 transition-all duration-200 cursor-pointer disabled:opacity-50"
+                      className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-xl font-bold text-sm sm:text-base bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white shadow-lg shadow-teal-600/30 transition-all duration-200 cursor-pointer disabled:opacity-50 min-h-[48px]"
                       id="submit-proposal-btn"
                     >
                       {isSubmitting ? (
