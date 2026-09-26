@@ -470,11 +470,6 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
         {/* Footer Security Badges */}
         <div className="mt-8 pt-6 border-t border-slate-800/80 flex items-center justify-center gap-4 text-[11px] text-slate-500">
           <span className="flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-            256-Bit SSL Auth
-          </span>
-          <span>•</span>
-          <span className="flex items-center gap-1">
             <ShieldCheck className="w-3 h-3 text-teal-400" />
             Master Key Recovery
           </span>
