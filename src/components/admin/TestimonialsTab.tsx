@@ -98,7 +98,7 @@ export default function TestimonialsTab() {
       setAvatarUploadStatus('Uploading avatar to Supabase Storage bucket...');
 
       // Attempt direct Supabase Storage bucket upload
-      const uploadRes = await uploadFileToSupabaseStorage(file, 'testimonials', (msg) => {
+      const uploadRes = await uploadFileToSupabaseStorage(file, 'Avatar_image', (msg) => {
         setAvatarUploadStatus(msg);
       });
 
@@ -135,7 +135,7 @@ export default function TestimonialsTab() {
       setEditAvatarUploadStatus('Uploading to Supabase Storage...');
 
       // Attempt direct Supabase Storage bucket upload
-      const uploadRes = await uploadFileToSupabaseStorage(file, 'testimonials', (msg) => {
+      const uploadRes = await uploadFileToSupabaseStorage(file, 'Avatar_image', (msg) => {
         setEditAvatarUploadStatus(msg);
       });
 

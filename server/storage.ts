@@ -44,11 +44,14 @@ export function resolveSupabaseConfig(): {
   const cache = readStorageCache();
 
   // 1. Check direct env vars
-  let url = process.env.SUPABASE_URL?.trim() || null;
+  let rawUrl = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL)?.trim() || null;
+  let url = rawUrl ? rawUrl.replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') : null;
+
   let key = (
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.SUPABASE_SERVICE_KEY ||
     process.env.SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY ||
     process.env.SUPABASE_KEY
   )?.trim() || null;
   let bucket = process.env.SUPABASE_STORAGE_BUCKET?.trim() || cache.bucket || 'media';
@@ -75,7 +78,7 @@ export function resolveSupabaseConfig(): {
     key = cache.key;
   }
   if (!url && cache.url) {
-    url = cache.url;
+    url = cache.url.replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
   }
 
   const source = (process.env.SUPABASE_URL || process.env.SUPABASE_ANON_KEY)
@@ -205,10 +208,20 @@ export async function uploadBufferToSupabase(
     };
   }
 
-  const bucket = config.bucket;
+  // Support direct buckets (Cover_image, Videos, Avatar_image) or standard media bucket
+  const knownDirectBuckets: Record<string, string> = {
+    Cover_image: 'Cover_image',
+    Videos: 'Videos',
+    Avatar_image: 'Avatar_image',
+    testimonials: 'Avatar_image',
+    projects: 'Cover_image',
+    videos: 'Videos',
+  };
+
+  const targetBucket = knownDirectBuckets[folder] || config.bucket || 'media';
 
   // Auto-verify / create bucket
-  await ensureBucketExists(bucket);
+  await ensureBucketExists(targetBucket);
 
   const cleanExt = path.extname(originalFileName) || (mimeType.includes('video') ? '.mp4' : '.jpg');
   const baseName = path
@@ -216,11 +229,11 @@ export async function uploadBufferToSupabase(
     .replace(/[^a-zA-Z0-9_-]/g, '_')
     .slice(0, 30);
   const randomSuffix = crypto.randomBytes(4).toString('hex');
-  const filePath = `${folder}/${Date.now()}_${baseName}_${randomSuffix}${cleanExt}`;
+  const filePath = `${Date.now()}_${baseName}_${randomSuffix}${cleanExt}`;
 
   try {
     const { data, error } = await client.storage
-      .from(bucket)
+      .from(targetBucket)
       .upload(filePath, buffer, {
         contentType: mimeType,
         upsert: true,
@@ -233,12 +246,12 @@ export async function uploadBufferToSupabase(
       };
     }
 
-    const { data: publicUrlData } = client.storage.from(bucket).getPublicUrl(data.path);
+    const { data: publicUrlData } = client.storage.from(targetBucket).getPublicUrl(data.path);
     return {
       success: true,
       url: publicUrlData.publicUrl,
       path: data.path,
-      bucket,
+      bucket: targetBucket,
     };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

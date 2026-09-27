@@ -117,50 +117,87 @@ export async function uploadFileToSupabaseStorage(
   onProgress?: (message: string) => void
 ): Promise<UploadResult> {
   try {
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return { success: false, requiresKey: true, error: 'Missing Supabase API keys.' };
+    if (onProgress) onProgress(`Preparing ${file.name}...`);
+    const validation = validateFileSize(file);
+    if (!validation.valid) {
+      return {
+        success: false,
+        error: validation.error || `File size exceeds the ${MAX_MEDIA_SIZE_MB}MB limit.`,
+      };
     }
 
-    if (onProgress) onProgress(`Preparing ${file.name}...`);
-  const validation = validateFileSize(file);
-  if (!validation.valid) {
-    return {
-      success: false,
-      error: validation.error || `File size exceeds the ${MAX_MEDIA_SIZE_MB}MB limit.`,
-    };
-  }
+    onProgress?.(`Reading ${file.name} (${validation.sizeMb} MB)...`);
 
+    // Clean filename to prevent path collision and character issues
+    const fileExt = file.name.split('.').pop() || (file.type.startsWith('video/') ? 'mp4' : 'jpg');
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+    const filePath = `${fileName}`;
 
-  onProgress?.(`Reading ${file.name} (${validation.sizeMb} MB)...`);
+    // 1. If client keys exist, attempt direct client upload
+    if (supabaseUrl && supabaseAnonKey) {
+      onProgress?.(`Uploading ${file.name} to Supabase bucket '${folder}'...`);
+      try {
+        const { data, error } = await supabase.storage
+          .from(folder)
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+          });
 
-  // Clean filename to prevent path collision and characters issue
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-  const filePath = `${fileName}`;
+        if (!error && data?.path) {
+          const { data: publicUrlData } = supabase.storage
+            .from(folder)
+            .getPublicUrl(data.path);
 
-  onProgress?.(`Uploading ${file.name} to '${folder}' bucket....`)
+          onProgress?.(`✓ Uploaded directly to '${folder}' bucket.`);
+          return {
+            success: true,
+            url: publicUrlData.publicUrl,
+            path: data.path,
+            bucket: folder,
+            storageType: 'supabase',
+          };
+        }
 
-  // Upload file to Supabase bucket
-  const { data, error } = await supabase.storage
-    .from(folder)
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      upsert: false,
+        // If direct upload fails due to Supabase RLS policies (e.g. 403 AccessDenied for anon),
+        // log warning and seamlessly fall back to secure backend proxy using service role key
+        console.warn(`Direct client upload to bucket '${folder}' returned:`, error?.message, 'Attempting secure backend proxy...');
+      } catch (clientErr) {
+        console.warn('Direct upload exception, trying backend proxy:', clientErr);
+      }
+    }
+
+    // 2. Seamless Backend Proxy Upload using SUPABASE_SERVICE_ROLE_KEY (bypasses RLS)
+    onProgress?.(`Streaming ${file.name} to Supabase Storage via backend...`);
+    const dataUrl = await fileToDataUrl(file);
+
+    const res = await fetch('/api/storage/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dataUrl,
+        fileName: file.name,
+        folder,
+      }),
     });
 
-    if (error) {
-      console.error('Supabase Storage Error:', error);
-      return{ success: false, error: error.message };
+    const serverData = await res.json();
+
+    if (res.ok && serverData.success && serverData.url) {
+      onProgress?.(`✓ Successfully stored in Supabase Storage '${serverData.bucket || folder}' bucket.`);
+      return {
+        success: true,
+        url: serverData.url,
+        path: serverData.path,
+        bucket: serverData.bucket || folder,
+        storageType: 'supabase',
+      };
     }
 
-    // Retrieve public CDN URL for uploaded asset
-    const { data: publicUrlData } = supabase.storage
-      .from(folder)
-      .getPublicUrl(data.path);
-
+    // Both direct client and backend proxy failed
     return {
-      success: true,
-      url: publicUrlData.publicUrl,
+      success: false,
+      error: serverData.error || 'Failed to upload to Supabase Storage.',
     };
   } catch (err: any) {
     console.error('Upload Error:', err);
@@ -169,4 +206,4 @@ export async function uploadFileToSupabaseStorage(
       error: err.message || 'An unexpected upload error occurred.',
     };
   }
-};
+}

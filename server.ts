@@ -2,7 +2,6 @@ import express from 'express';
 import path from 'path';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import { createServer as createViteServer } from 'vite';
 import { getPrisma, getPgPool, isDatabaseConfigured, testConnection, ensureTablesExist } from './server/db';
 import { PROJECTS_DATA, TESTIMONIALS_DATA } from './src/data/content';
 import { checkPasswordStrength } from './src/utils/passwordValidator';
@@ -222,12 +221,11 @@ async function getActiveAdminCredentials(): Promise<{
   };
 }
 
-async function startServer() {
-  const app = express();
-  const PORT = Number(process.env.PORT) || 3000;
+// Create and export Express application
+export const app = express();
 
-  app.use(express.json({ limit: '50mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
   // Proactively ensure database tables and columns (including password) exist on boot
   ensureTablesExist().catch((err) => {
@@ -1580,24 +1578,40 @@ async function startServer() {
     });
   });
 
-  // Vite middleware setup
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
+  // Server startup lifecycle
+  const PORT = Number(process.env.PORT) || 3000;
+
+  async function startServer() {
+    // Proactively ensure database tables and columns exist on boot
+    ensureTablesExist().catch((err) => {
+      console.warn('Initial ensureTablesExist warning:', err);
     });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
+
+    // Vite middleware setup
+    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+      const { createServer: createViteServer } = await import('vite');
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+    } else if (!process.env.VERCEL) {
+      const distPath = path.join(process.cwd(), 'dist');
+      app.use(express.static(distPath));
+      app.get('*', (_req, res) => {
+        res.sendFile(path.join(distPath, 'index.html'));
+      });
+    }
+
+    if (!process.env.VERCEL) {
+      app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server running on http://localhost:${PORT} (http://0.0.0.0:${PORT})`);
+      });
+    }
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://localhost:${PORT} (http://0.0.0.0:${PORT})`);
-  });
-}
+  if (!process.env.VERCEL) {
+    startServer();
+  }
 
-startServer();
+  export default app;
