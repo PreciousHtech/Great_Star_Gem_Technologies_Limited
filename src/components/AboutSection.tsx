@@ -23,7 +23,7 @@ export default function AboutSection() {
           </h2>
           <p className="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-300 leading-relaxed">
             Established to bridge structural infrastructure, renewable energy independence, and digital transformation, 
-            <strong className="text-white font-semibold"> GreatStarGem</strong> unites international event architects, civil engineers, renewable energy pioneers, real estate developers, and ICT systems consultants under one unified standard of excellence.
+            <strong className="text-white font-semibold"> Great Star Gem Technologies</strong> unites international event architects, civil engineers, renewable energy pioneers, real estate developers, and ICT systems consultants under one unified standard of excellence.
           </p>
         </div>
 
@@ -122,7 +122,7 @@ export default function AboutSection() {
                     Bridging Domestic Frontiers with International Excellence
                   </h3>
                   <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                    GreatStarGem coordinates cross-border partnerships across Europe, Africa, the Middle East, and North America. Whether curating a bilateral government summit or importing industrial solar inverters and structural steel, we combine deep domestic regulatory mastery with global supply chain velocity.
+                    Great Star Gem Technologies coordinates cross-border partnerships across Europe, Africa, the Middle East, and North America. Whether curating a bilateral government summit or importing industrial solar inverters and structural steel, we combine deep domestic regulatory mastery with global supply chain velocity.
                   </p>
                   <div className="grid grid-cols-2 gap-4 pt-2">
                     <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-800">

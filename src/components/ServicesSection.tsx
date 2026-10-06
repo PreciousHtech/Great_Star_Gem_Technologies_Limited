@@ -190,7 +190,7 @@ export default function ServicesSection({
             Our Five Core Services
           </h2>
           <p className="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-400">
-            From international diplomatic summits to clean megawatt power plants and civil infrastructure, GreatStarGem delivers unmatched multidisciplinary execution.
+            From international diplomatic summits to clean megawatt power plants and civil infrastructure, Great Star Gem Technologies delivers unmatched multidisciplinary execution.
           </p>
         </div>
 
@@ -307,7 +307,7 @@ export default function ServicesSection({
               </div>
 
               <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white font-['Outfit',sans-serif]">
-                Plan Your Engagement with GreatStarGem
+                Plan Your Engagement with Great Star Gem Technologies
               </h3>
               <p className="text-xs sm:text-sm text-slate-300">
                 Select your sector of interest and required project magnitude to view our standard turnkey timeline, technical composition, and execution deliverables.

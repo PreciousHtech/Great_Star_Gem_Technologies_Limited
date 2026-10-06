@@ -87,7 +87,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
             <span>Initiate Engagement</span>
           </div>
           <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
-            Connect with GreatStarGem
+            Connect with Great Star Gem Technologies
           </h2>
           <p className="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-400">
             Request an engineering proposal, international conference tender, EPC solar audit, real estate investment prospectus, or ICT consulting roadmap.
@@ -115,7 +115,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                       Principal Office
                     </span>
                     <p className="font-medium text-white mt-0.5">
-                      GreatStarGem Towers, Central Business District
+                      Great Star Gem Technologies Towers, Central Business District
                     </p>
                     <p className="text-xs text-slate-400">
                       Engineering & International Summit Directorate
@@ -131,7 +131,7 @@ export default function ContactSection({ initialService = '' }: ContactSectionPr
                     <span className="text-xs uppercase font-semibold text-slate-400 block">
                       Official Correspondence
                     </span>
-                    <a href="mailto:inquiry@greatstargem.com" className="font-medium text-teal-300 hover:text-teal-200 hover:underline mt-0.5 block">
+                    <a href="mailto:greatstargemtechnologies@gmail.com" className="font-medium text-teal-300 hover:text-teal-200 hover:underline mt-0.5 block">
                       greatstargemtechnologies@gmail.com
                     </a>
                     <p className="text-xs text-slate-400">Tenders, RFQs & Diplomatic Protocol</p>

@@ -251,8 +251,8 @@ export default function ProjectsTab() {
           image: image || 'https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=800&q=80',
           videoUrl: videoUrl.trim(),
           summary,
-          challenge: challenge.trim() || 'Engineered high-efficiency technical solution under complex real-world constraints.',
-          solution: solution.trim() || 'Designed and deployed turnkey engineering architecture with measurable operational impact.',
+          challenge: challenge.trim() || ' ',
+          solution: solution.trim() || ' ',
           liveUrl,
           githubUrl,
           impactMetrics: metrics.length > 0 ? metrics : ['Verified Delivery'],
@@ -270,8 +270,8 @@ export default function ProjectsTab() {
           image: image || 'https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=800&q=80',
           videoUrl: videoUrl.trim(),
           summary,
-          challenge: challenge.trim() || 'Architecting scalable cloud modules and sub-second response times.',
-          solution: solution.trim() || 'Built robust modern microservices and modular UI components.',
+          challenge: challenge.trim() || ' ',
+          solution: solution.trim() || ' ',
           liveUrl,
           githubUrl,
           impactMetrics: metrics.length > 0 ? metrics : ['Production Live', '100% Verified'],
@@ -879,7 +879,7 @@ export default function ProjectsTab() {
                     rows={3}
                     value={solution}
                     onChange={(e) => setSolution(e.target.value)}
-                    placeholder="Type the GreatStarGem technical solution, engineering strategy, and deliverables implemented..."
+                    placeholder="Type the Great Star Gem Technologies technical solution, engineering strategy, and deliverables implemented..."
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-emerald-500/70 resize-none transition-colors"
                   />
                     

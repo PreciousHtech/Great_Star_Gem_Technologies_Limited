@@ -29,24 +29,15 @@ function PublicWebsite() {
     }
   };
 
-  /* [UNUSED - Candidate for removal]:
-  const handleOpenConsultation = () => {
-    const contactElement = document.getElementById('contact');
-    if (contactElement) {
-      contactElement.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-  */
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100 flex flex-col selection:bg-purple-600 selection:text-white">
       {/* Sticky Top Navigation */}
-      <Navbar /* [UNUSED - Candidate for removal]: onOpenConsultation={handleOpenConsultation} */ />
+      <Navbar />
 
       {/* Main Content Sections */}
       <main className="flex-grow">
         {/* Hero Section (#home) */}
-        <Hero /* [UNUSED - Candidate for removal]: onSelectServiceTab={handleSelectServiceForContact} */ />
+        <Hero />
 
         {/* About Section (#about) */}
         <AboutSection />

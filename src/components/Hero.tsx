@@ -30,7 +30,7 @@ export default function Hero() {
           </h1>
 
           <p className="text-sm sm:text-lg text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
-            <strong className="text-white font-semibold">GreatStarGem</strong> delivers turnkey excellence across five critical economic pillars: world-class international conferences, eco-resilient real estate, commercial solar PV power, multidisciplinary engineering, and enterprise ICT solutions.
+            <strong className="text-white font-semibold">Great Star Gem Technologies</strong> delivers turnkey excellence across five critical economic pillars: world-class international conferences, eco-resilient real estate, commercial solar PV power, multidisciplinary engineering, web application and enterprise ICT solutions.
           </p>
 
           {/* CTAs: Teal-button & Slate-button */}

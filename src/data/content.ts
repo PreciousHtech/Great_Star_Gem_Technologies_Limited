@@ -210,7 +210,7 @@ export const CORE_VALUES = [
 export const FAQS_DATA: FAQItem[] = [
   {
     category: 'Conferences',
-    question: 'How far in advance should we engage GreatStarGem for an international conference?',
+    question: 'How far in advance should we engage Great Star Gem Technologies for an international conference?',
     answer: 'For large-scale international summits involving diplomatic delegations, simultaneous interpretation, and high-security protocols, we recommend engaging us 3 to 6 months prior. However, our rapid response event teams can execute regional symposiums within 3 to 4 weeks.'
   },
   {
@@ -221,7 +221,7 @@ export const FAQS_DATA: FAQItem[] = [
   {
     category: 'Real Estate',
     question: 'What guarantees and documentation are provided for real estate developments?',
-    answer: 'All GreatStarGem real estate projects carry unencumbered government approved titles, certified environmental impact reports, structural integrity warranties, and full architectural BIM documentation. We also offer managed rental programs for institutional investors.'
+    answer: 'All Great Star Gem Technologies real estate projects carry unencumbered government approved titles, certified environmental impact reports, structural integrity warranties, and full architectural BIM documentation. We also offer managed rental programs for institutional investors.'
   },
   {
     category: 'Engineering',
