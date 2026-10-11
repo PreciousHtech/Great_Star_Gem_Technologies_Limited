@@ -10,3 +10,5 @@ coverage/
 !.env.example
 .admin-auth-cache.json
 .admin-storage-config.json
+.vercel
+.env*
