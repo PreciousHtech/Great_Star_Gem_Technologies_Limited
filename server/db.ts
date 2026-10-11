@@ -61,8 +61,12 @@ export function getPgPool(): pg.Pool | null {
         ssl: dbUrl.includes('supabase') || dbUrl.includes('sslmode=require') || !dbUrl.includes('localhost')
           ? { rejectUnauthorized: false }
           : false,
-        max: 5,
-        connectionTimeoutMillis: 5000,
+        max: 3,
+        connectionTimeoutMillis: 10000,
+        idleTimeoutMillis: 30000,
+      });
+      pgPoolInstance.on('error', (err) => {
+        console.warn('PgBouncer pool client error:', err.message);
       });
     } catch (e) {
       console.error('Failed to initialize pg Pool:', e);

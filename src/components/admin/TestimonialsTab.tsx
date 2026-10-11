@@ -149,7 +149,7 @@ export default function TestimonialsTab() {
       setEditAvatar(base64);
       setEditAvatarUploadStatus(uploadRes.requiresKey ? 'Local image loaded' : null);
     } catch (err) {
-      console.error('Failed to load image from folder:', err);
+      console.error('Failed to load edit image from folder:', err);
       setEditAvatarFileName('');
       setEditAvatarUploadStatus(null);
     } finally {

@@ -220,10 +220,10 @@ export const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-  // Proactively ensure database tables and columns (including password) exist on boot
-  ensureTablesExist().catch((err) => {
-    console.warn('Initial ensureTablesExist warning:', err);
-  });
+// Proactively ensure database tables and columns (including password) exist on boot
+ensureTablesExist().catch((err) => {
+  console.warn('Initial ensureTablesExist warning:', err);
+});
 
   // Health endpoint
   app.get('/api/health', (_req, res) => {
@@ -1172,13 +1172,24 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
   });
 
   app.post('/api/admin/login', async (req, res) => {
-    const { username, password } = req.body;
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = {};
+      }
+    }
+    const username = body?.username;
+    const password = body?.password;
+
     if (!username || !password) {
       return res.status(400).json({ success: false, message: 'Username and password are required.' });
     }
 
     const activeCreds = await getActiveAdminCredentials();
-    const isUserMatch = username.trim().toLowerCase() === activeCreds.username.toLowerCase();
+    const candidate = String(username).trim().toLowerCase();
+    const isUserMatch = candidate === activeCreds.username.toLowerCase();
     const isPassMatch = await verifyPassword(password, activeCreds.passwordHash);
 
     if (isUserMatch && isPassMatch) {
