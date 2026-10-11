@@ -24,20 +24,13 @@ dotenv.config();
 // Initial fallback values from environment variables if provided in .env
 function getEnvDefaultPassword(): string {
   return (
-    process.env.ADMIN_PASSWORD ||
-    process.env.ADMIN_DEFAULT_PASSWORD ||
-    process.env.ADMIN_PASS ||
-    process.env.DEFAULT_ADMIN_PASSWORD ||
-    'admin123'
+    process.env.ADMIN_PASSWORD
   );
 }
 
 function getEnvDefaultUsername(): string {
   return (
-    process.env.ADMIN_USERNAME ||
-    process.env.ADMIN_USER ||
-    process.env.DEFAULT_ADMIN_USER ||
-    'admin'
+    process.env.ADMIN_USERNAME
   );
 }
 
