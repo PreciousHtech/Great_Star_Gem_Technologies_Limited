@@ -12,6 +12,7 @@ interface StorageConfig {
 }
 
 function readStorageCache(): StorageConfig {
+  if (process.env.VERCEL) return {};
   try {
     if (fs.existsSync(STORAGE_CONFIG_FILE)) {
       const content = fs.readFileSync(STORAGE_CONFIG_FILE, 'utf8');
@@ -24,6 +25,7 @@ function readStorageCache(): StorageConfig {
 }
 
 export function writeStorageCache(config: StorageConfig): void {
+  if (process.env.VERCEL) return;
   try {
     const existing = readStorageCache();
     const updated = { ...existing, ...config };
@@ -259,5 +261,60 @@ export async function uploadBufferToSupabase(
       success: false,
       error: `Storage upload failed: ${msg}`,
     };
+  }
+}
+
+export async function createSignedUploadUrl(
+  folder: string,
+  originalFileName: string,
+  mimeType: string
+): Promise<{ success: boolean; signedUrl?: string; token?: string; path?: string; publicUrl?: string; bucket?: string; error?: string }> {
+  const client = getSupabaseClient();
+  if (!client) {
+    return { success: false, error: 'Supabase Storage is not connected.' };
+  }
+
+  const knownDirectBuckets: Record<string, string> = {
+    Cover_image: 'Cover_image',
+    Videos: 'Videos',
+    Avatar_image: 'Avatar_image',
+    testimonials: 'Avatar_image',
+    projects: 'Cover_image',
+    videos: 'Videos',
+  };
+  const config = resolveSupabaseConfig();
+  const targetBucket = knownDirectBuckets[folder] || config.bucket || 'media';
+  await ensureBucketExists(targetBucket);
+
+  const cleanExt = path.extname(originalFileName) || (mimeType.includes('video') ? '.mp4' : '.jpg');
+  const baseName = path
+    .basename(originalFileName, cleanExt)
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .slice(0, 30);
+  const randomSuffix = crypto.randomBytes(4).toString('hex');
+  const filePath = `${Date.now()}_${baseName}_${randomSuffix}${cleanExt}`;
+
+  try {
+    const { data, error } = await client.storage
+      .from(targetBucket)
+      .createSignedUploadUrl(filePath);
+
+    if (error || !data) {
+      return { success: false, error: error?.message || 'Failed to generate signed upload URL' };
+    }
+
+    const { data: publicUrlData } = client.storage.from(targetBucket).getPublicUrl(filePath);
+
+    return {
+      success: true,
+      signedUrl: data.signedUrl,
+      token: data.token,
+      path: data.path,
+      publicUrl: publicUrlData.publicUrl,
+      bucket: targetBucket,
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { success: false, error: msg };
   }
 }

@@ -78,10 +78,12 @@ export function getPgPool(): pg.Pool | null {
         ssl: dbUrl.includes('supabase') || dbUrl.includes('pooler') || dbUrl.includes('sslmode=require') || !dbUrl.includes('localhost')
           ? { rejectUnauthorized: false }
           : false,
-        max: 3,
-        connectionTimeoutMillis: 15000,
-        idleTimeoutMillis: 30000,
-      });
+        max: 2,
+        connectionTimeoutMillis: 5000,
+        idleTimeoutMillis: 10000,
+        query_timeout: 10000,
+        allowExitOnIdle: true,
+      } as pg.PoolConfig);
       pgPoolInstance.on('error', (err) => {
         console.warn('PgBouncer pool client error:', err.message);
       });
@@ -230,20 +232,6 @@ export async function ensureTablesExist(): Promise<{ success: boolean; message: 
       ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "videoUrl" TEXT;
       ALTER TABLE "AdminSetting" ADD COLUMN IF NOT EXISTS "password" TEXT;
       ALTER TABLE "AdminSetting" ADD COLUMN IF NOT EXISTS "recoveryKey" TEXT;
-
-      -- Drop unused API token and webhook secret columns from Supabase
-      ALTER TABLE "AdminSetting" DROP COLUMN IF EXISTS "apiToken";
-      ALTER TABLE "AdminSetting" DROP COLUMN IF EXISTS "webhookSecret";
-
-      -- Ensure default row exists with a baseline recovery key so it is immediately visible in Supabase Table Editor
-      INSERT INTO "AdminSetting" (id, username, email, "recoveryKey", "updatedAt")
-      VALUES ('default', 'admin', 'admin@greatstargem.com', 'GreatStarGem-Recovery-Key-2026', CURRENT_TIMESTAMP)
-      ON CONFLICT (id) DO NOTHING;
-
-      -- If the row exists but recoveryKey was null, initialize it
-      UPDATE "AdminSetting"
-      SET "recoveryKey" = 'GreatStarGem-Recovery-Key-2026'
-      WHERE id = 'default' AND ("recoveryKey" IS NULL OR TRIM("recoveryKey") = '');
     `);
 
     await client.query('COMMIT');

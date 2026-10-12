@@ -97,6 +97,9 @@ export async function verifyPassword(
  * Reads local auth cache securely. The cache ONLY stores hashed credentials.
  */
 export function readAuthCache(): StoredAuthData {
+  if (process.env.VERCEL) {
+    return { username: process.env.ADMIN_USERNAME || '', passwordHash: '', isCustomPassword: false };
+  }
   try {
     if (fs.existsSync(AUTH_CACHE_FILE)) {
       const raw = fs.readFileSync(AUTH_CACHE_FILE, 'utf-8');
@@ -121,6 +124,9 @@ export function readAuthCache(): StoredAuthData {
  * Plain-text passwords are NEVER written to this file.
  */
 export function writeAuthCache(data: StoredAuthData): void {
+  if (process.env.VERCEL) {
+    return;
+  }
   try {
     const existing = readAuthCache();
     const cleanData: StoredAuthData = {

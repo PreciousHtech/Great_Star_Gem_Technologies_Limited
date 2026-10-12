@@ -10,3 +10,5 @@ coverage/
 .admin-auth-cache.json
 .admin-storage-config.json
 .vercel
+server.cjs
+server.cjs.map
