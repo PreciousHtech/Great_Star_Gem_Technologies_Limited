@@ -6,7 +6,24 @@ let prismaInstance: PrismaClient | null = null;
 let pgPoolInstance: pg.Pool | null = null;
 
 export function getDatabaseUrl(): string | undefined {
-  return process.env.DATABASE_URL?.trim();
+  let url = process.env.DATABASE_URL?.trim();
+  if (!url) return undefined;
+
+  // Strip wrapping quotes if pasted with quotes
+  if ((url.startsWith('"') && url.endsWith('"')) || (url.startsWith("'") && url.endsWith("'"))) {
+    url = url.slice(1, -1).trim();
+  }
+
+  // If a user accidentally pasted Supabase direct port 5432 URL on Vercel,
+  // automatically transform it into the IPv4 Transaction Pooler (port 6543) URL
+  const directMatch = url.match(/^postgresql:\/\/([^:]+):([^@]+)@db\.([a-z0-9_-]+)\.supabase\.co:5432\/(.+)$/);
+  if (directMatch) {
+    const [, user, pass, ref, db] = directMatch;
+    const poolerUser = user.includes('.') ? user : `${user}.${ref}`;
+    url = `postgresql://${poolerUser}:${pass}@aws-1-eu-west-1.pooler.supabase.com:6543/${db}${db.includes('?') ? '&' : '?'}pgbouncer=true`;
+  }
+
+  return url;
 }
 
 export function isDatabaseConfigured(): boolean {
@@ -58,11 +75,11 @@ export function getPgPool(): pg.Pool | null {
     try {
       pgPoolInstance = new Pool({
         connectionString: dbUrl,
-        ssl: dbUrl.includes('supabase') || dbUrl.includes('sslmode=require') || !dbUrl.includes('localhost')
+        ssl: dbUrl.includes('supabase') || dbUrl.includes('pooler') || dbUrl.includes('sslmode=require') || !dbUrl.includes('localhost')
           ? { rejectUnauthorized: false }
           : false,
         max: 3,
-        connectionTimeoutMillis: 10000,
+        connectionTimeoutMillis: 15000,
         idleTimeoutMillis: 30000,
       });
       pgPoolInstance.on('error', (err) => {

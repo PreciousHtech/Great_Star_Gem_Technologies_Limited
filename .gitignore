@@ -5,8 +5,8 @@ coverage/
 .DS_Store
 *.log
 .env
+.env*
 !.env.example
 .admin-auth-cache.json
 .admin-storage-config.json
 .vercel
-.env*
