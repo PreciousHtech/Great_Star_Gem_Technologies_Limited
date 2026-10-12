@@ -2,23 +2,23 @@ import express from 'express';
 import path from 'path';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import { getPrisma, getPgPool, isDatabaseConfigured, testConnection, ensureTablesExist } from './server/db';
-import { PROJECTS_DATA, TESTIMONIALS_DATA } from './src/data/content';
-import { checkPasswordStrength } from './src/utils/passwordValidator';
+import { getPrisma, getPgPool, isDatabaseConfigured, testConnection, ensureTablesExist } from './server/db.js';
+import { PROJECTS_DATA, TESTIMONIALS_DATA } from './src/data/content.js';
+import { checkPasswordStrength } from './src/utils/passwordValidator.js';
 import { 
   hashPassword, 
   verifyPassword, 
   isHashedPassword, 
   readAuthCache, 
   writeAuthCache
-} from './server/auth';
+} from './server/auth.js';
 import {
   resolveSupabaseConfig,
   getSupabaseClient,
   ensureBucketExists,
   uploadBufferToSupabase,
   writeStorageCache
-} from './server/storage';
+} from './server/storage.js';
 dotenv.config();
 
 // Initial fallback values from environment variables if provided in .env
@@ -27,6 +27,7 @@ function getEnvDefaultPassword(): string {
     process.env.ADMIN_PASSWORD ||
     process.env.ADMIN_DEFAULT_PASSWORD ||
     process.env.ADMIN_PASS ||
+    process.env.DEFAULT_ADMIN_PASSWORD ||
     'admin123'
   );
 }
@@ -36,20 +37,9 @@ function getEnvDefaultUsername(): string {
     process.env.ADMIN_USERNAME ||
     process.env.ADMIN_USER ||
     process.env.DEFAULT_ADMIN_USER ||
-    'Admin'
+    'admin'
   );
 }
-
-/* [UNUSED - Candidate for removal]:
-function getEnvAdminRecoveryKey(): string {
-  return (
-    process.env.ADMIN_RECOVERY_KEY ||
-    process.env.ADMIN_MASTER_KEY ||
-    process.env.ADMIN_RESET_KEY ||
-    'GreatStarGem-Recovery-Key-2026'
-  );
-}
-*/
 
 
 // Resolves the active Master Recovery Key.
@@ -169,27 +159,8 @@ async function getActiveAdminCredentials(): Promise<{
           isCustomPassword: true,
         };
       }
-    } catch (err: any) {
-      console.warn('PostgreSQL pool admin credential lookup warning:', err?.message || err);
-      // If table doesn't exist yet, auto-run ensureTablesExist and retry once
-      if (err?.code === '42P01' || String(err).includes('does not exist')) {
-        try {
-          await ensureTablesExist();
-          const retryRes = await pool.query(
-            'SELECT username, password FROM "AdminSetting" WHERE id = $1 LIMIT 1',
-            ['default']
-          );
-          if (retryRes.rows.length > 0 && retryRes.rows[0].password) {
-            return {
-              username: retryRes.rows[0].username || getEnvDefaultUsername(),
-              passwordHash: retryRes.rows[0].password,
-              isCustomPassword: true,
-            };
-          }
-        } catch (retryErr) {
-          console.warn('Retry after ensureTablesExist warning:', retryErr);
-        }
-      }
+    } catch (err) {
+      console.warn('PostgreSQL pool admin credential lookup warning:', err);
     }
   } else if (prisma) {
     try {
@@ -245,10 +216,10 @@ export const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Proactively ensure database tables and columns (including password) exist on boot
-ensureTablesExist().catch((err) => {
-  console.warn('Initial ensureTablesExist warning:', err);
-});
+  // Proactively ensure database tables and columns (including password) exist on boot
+  ensureTablesExist().catch((err) => {
+    console.warn('Initial ensureTablesExist warning:', err);
+  });
 
   // Health endpoint
   app.get('/api/health', (_req, res) => {
@@ -1197,28 +1168,14 @@ ensureTablesExist().catch((err) => {
   });
 
   app.post('/api/admin/login', async (req, res) => {
-    let body = req.body;
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch {
-        body = {};
-      }
-    }
-    const username = body?.username;
-    const password = body?.password;
-
+    const { username, password } = req.body;
     if (!username || !password) {
       return res.status(400).json({ success: false, message: 'Username and password are required.' });
     }
 
     const activeCreds = await getActiveAdminCredentials();
-    const candidate = String(username).trim().toLowerCase();
-    const isUserMatch = candidate === activeCreds.username.toLowerCase();
-    let isPassMatch = await verifyPassword(password, activeCreds.passwordHash);
-    if (!isPassMatch && process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD) {
-      isPassMatch = true;
-    }
+    const isUserMatch = username.trim().toLowerCase() === activeCreds.username.toLowerCase();
+    const isPassMatch = await verifyPassword(password, activeCreds.passwordHash);
 
     if (isUserMatch && isPassMatch) {
       return res.json({
