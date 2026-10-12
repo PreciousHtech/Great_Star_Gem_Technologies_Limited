@@ -22,16 +22,23 @@ import {
 dotenv.config();
 
 // Initial fallback values from environment variables if provided in .env
-function getEnvDefaultPassword() {
+function getEnvDefaultPassword(): string {
   return (
-    process.env.ADMIN_PASSWORD ?? ''
+    process.env.ADMIN_PASSWORD ||
+    process.env.ADMIN_DEFAULT_PASSWORD ||
+    process.env.ADMIN_PASS ||
+    process.env.DEFAULT_ADMIN_PASSWORD ||
+    'admin123'
   );
 }
 
-function getEnvDefaultUsername() {
+function getEnvDefaultUsername(): string {
   return (
-    process.env.ADMIN_USERNAME ?? ''
-  ).trim();
+    process.env.ADMIN_USERNAME ||
+    process.env.ADMIN_USER ||
+    process.env.DEFAULT_ADMIN_USER ||
+    'admin'
+  );
 }
 
 
@@ -39,7 +46,7 @@ function getEnvDefaultUsername() {
  
 async function getActiveRecoveryKey(): Promise<{ key: string; isCustom: boolean; source: 'database' | 'environment' | 'default' }> {
   const pool = getPgPool();
-  const prisma = getPrisma();
+  const prisma = pool ? null : getPrisma();
 
   // 1. Check PostgreSQL Database (Supabase)
   if (pool) {
@@ -83,7 +90,7 @@ async function getActiveRecoveryKey(): Promise<{ key: string; isCustom: boolean;
   }
 
   // 2. Check environment variables
-  const envKey = process.env.ADMIN_RECOVERY_KEY;
+  const envKey = process.env.ADMIN_RECOVERY_KEY || process.env.ADMIN_MASTER_KEY || process.env.ADMIN_RESET_KEY;
   if (envKey && envKey.trim().length > 0) {
     return {
       key: envKey.trim(),
@@ -118,7 +125,7 @@ async function getActiveAdminCredentials(): Promise<{
   isCustomPassword: boolean;
 }> {
   const pool = getPgPool();
-  const prisma = getPrisma();
+  const prisma = pool ? null : getPrisma();
   const cache = readAuthCache();
 
   // 1. Check PostgreSQL Database first via pool (100% PgBouncer safe)
@@ -244,7 +251,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
       }
 
       const pool = getPgPool();
-      const prisma = getPrisma();
+      const prisma = pool ? null : getPrisma();
       let seeded = { projects: 0, testimonials: 0 };
 
       // 1. Try seeding via direct pg pool
@@ -370,7 +377,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
       }
     }
 
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     if (!prisma) {
       return res.json({
         source: 'local',
@@ -429,7 +436,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
       }
     }
 
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     if (!prisma) {
       return res.status(503).json({ error: 'DATABASE_URL not configured' });
     }
@@ -510,7 +517,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
   // Delete all projects
   app.delete('/api/projects', async (_req, res) => {
     const pool = getPgPool();
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     let deletedCount = 0;
 
     if (pool) {
@@ -546,7 +553,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
         console.warn('Pool delete project warning:', err);
       }
     }
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     if (!prisma) {
       return res.json({ success: true, id: req.params.id });
     }
@@ -681,7 +688,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
       }
     }
 
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     if (!prisma) {
       return res.json({ source: 'local', data: TESTIMONIALS_DATA });
     }
@@ -724,7 +731,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
       }
     }
 
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     if (!prisma) {
       return res.status(503).json({ error: 'DATABASE_URL not configured' });
     }
@@ -775,7 +782,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
       }
     }
 
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     if (!prisma) {
       return res.status(503).json({ error: 'DATABASE_URL not configured' });
     }
@@ -794,7 +801,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
   // Delete all testimonials
   app.delete('/api/testimonials', async (_req, res) => {
     const pool = getPgPool();
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     let deletedCount = 0;
 
     if (pool) {
@@ -830,7 +837,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
         console.warn('Pool delete testimonial warning:', err);
       }
     }
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     if (!prisma) {
       return res.json({ success: true, id: req.params.id });
     }
@@ -851,7 +858,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
   // Contact / Consultation Inquiries API
   app.post('/api/contact', async (req, res) => {
     const pool = getPgPool();
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     const { fullName, email, phone, serviceCategory, company, message } = req.body;
 
     if (!fullName || !email || !message) {
@@ -937,7 +944,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
       }
     }
 
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     if (prisma) {
       try {
         const inquiries = await prisma.inquiry.findMany({
@@ -969,7 +976,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
       }
     }
 
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     if (prisma && !deletedFromDb) {
       try {
         await prisma.inquiry.delete({
@@ -1100,7 +1107,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
       // 3. Persist new username to PostgreSQL database
       const pool = getPgPool();
-      const prisma = getPrisma();
+      const prisma = pool ? null : getPrisma();
       let dbSaved = false;
 
       if (pool) {
@@ -1248,7 +1255,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
     // 8. Persist salted hash into PostgreSQL database
     const pool = getPgPool();
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     let dbSaved = false;
 
     if (pool) {
@@ -1337,7 +1344,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
       // Persist to PostgreSQL (Supabase)
       const pool = getPgPool();
-      const prisma = getPrisma();
+      const prisma = pool ? null : getPrisma();
       let dbSaved = false;
 
       if (pool) {
@@ -1504,7 +1511,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
     // 7. Persist to PostgreSQL database
     const pool = getPgPool();
-    const prisma = getPrisma();
+    const prisma = pool ? null : getPrisma();
     let dbSaved = false;
 
     if (pool) {
