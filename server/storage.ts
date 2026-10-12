@@ -35,6 +35,17 @@ export function writeStorageCache(config: StorageConfig): void {
   }
 }
 
+export function getTargetBucket(folder: string): string {
+  const map: Record<string, string> = {
+    Cover_image: 'Cover_image',
+    Videos: 'Videos',
+    Avatar_image: 'Avatar_image',
+    testimonials: 'Avatar_image',
+    projects: 'Cover_image',
+    videos: 'Videos',
+  };
+  return map[folder] || resolveSupabaseConfig().bucket || 'media';
+}
 
 export function resolveSupabaseConfig(): {
   url: string | null;

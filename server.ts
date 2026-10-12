@@ -46,7 +46,7 @@ function getEnvDefaultUsername(): string {
  
 async function getActiveRecoveryKey(): Promise<{ key: string; isCustom: boolean; source: 'database' | 'environment' | 'default' }> {
   const pool = getPgPool();
-  const prisma = getPrisma();
+  const prisma = pool ? null : getPrisma();
 
   // 1. Check PostgreSQL Database (Supabase)
   if (pool) {
@@ -121,18 +121,19 @@ const failedRecoveryAttempts = new Map<string, { count: number; lockedUntil: num
  */
 async function getActiveAdminCredentials(): Promise<{
   username: string;
+  email?: string;
   passwordHash: string;
   isCustomPassword: boolean;
 }> {
   const pool = getPgPool();
-  const prisma = getPrisma();
+  const prisma = pool ? null : getPrisma();
   const cache = readAuthCache();
 
   // 1. Check PostgreSQL Database first via pool (100% PgBouncer safe)
   if (pool) {
     try {
       const res = await pool.query(
-        'SELECT username, password FROM "AdminSetting" WHERE id = $1 LIMIT 1',
+        'SELECT username, email, password FROM "AdminSetting" WHERE id = $1 LIMIT 1',
         ['default']
       );
       if (res.rows.length > 0 && res.rows[0].password) {
@@ -155,6 +156,7 @@ async function getActiveAdminCredentials(): Promise<{
 
         return {
           username: res.rows[0].username || getEnvDefaultUsername(),
+          email: res.rows[0].email || undefined,
           passwordHash: storedPassword,
           isCustomPassword: true,
         };
@@ -184,6 +186,7 @@ async function getActiveAdminCredentials(): Promise<{
 
         return {
           username: setting.username || getEnvDefaultUsername(),
+          email: setting.email || undefined,
           passwordHash: storedPassword,
           isCustomPassword: true,
         };
@@ -216,10 +219,12 @@ export const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-  // Proactively ensure database tables and columns (including password) exist on boot
-  ensureTablesExist().catch((err) => {
-    console.warn('Initial ensureTablesExist warning:', err);
-  });
+  // Proactively ensure database tables exist on boot in local development only (never on Vercel cold starts)
+  if (!process.env.VERCEL) {
+    ensureTablesExist().catch((err) => {
+      console.warn('Initial ensureTablesExist warning:', err);
+    });
+  }
 
   // Health endpoint
   app.get('/api/health', (_req, res) => {
@@ -1005,12 +1010,15 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
       const activeCreds = await getActiveAdminCredentials();
       return res.json({
         success: true,
+        username: activeCreds.username,
+        email: activeCreds.email,
         isCustomPassword: activeCreds.isCustomPassword,
         hasEnvDefault: Boolean(process.env.ADMIN_PASSWORD),
       });
     } catch (err) {
       return res.json({
         success: true,
+        username: getEnvDefaultUsername(),
         isCustomPassword: false,
         hasEnvDefault: false,
       });
@@ -1168,13 +1176,27 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
   });
 
   app.post('/api/admin/login', async (req, res) => {
-    const { username, password } = req.body;
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = {};
+      }
+    }
+    const rawUsername = body?.username ?? req.body?.username ?? '';
+    const rawPassword = body?.password ?? req.body?.password ?? '';
+    const username = String(rawUsername).trim();
+    const password = String(rawPassword);
+
     if (!username || !password) {
       return res.status(400).json({ success: false, message: 'Username and password are required.' });
     }
 
     const activeCreds = await getActiveAdminCredentials();
-    const isUserMatch = username.trim().toLowerCase() === activeCreds.username.toLowerCase();
+    const isUserMatch =
+      username.toLowerCase() === activeCreds.username.toLowerCase() ||
+      Boolean(activeCreds.email && username.toLowerCase() === activeCreds.email.toLowerCase());
     const isPassMatch = await verifyPassword(password, activeCreds.passwordHash);
 
     if (isUserMatch && isPassMatch) {
