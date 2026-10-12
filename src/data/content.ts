@@ -1,4 +1,4 @@
-import { ServiceItem, ProjectItem, TestimonialItem, FAQItem } from '../types';
+import { ServiceItem, ProjectItem, TestimonialItem, FAQItem } from '../types.js';
 
 export const SERVICES_DATA: ServiceItem[] = [
   {
