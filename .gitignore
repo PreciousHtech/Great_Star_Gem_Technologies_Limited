@@ -5,8 +5,6 @@ coverage/
 .DS_Store
 *.log
 .env
-.env.local
-.env.*.local
 !.env.example
 .admin-auth-cache.json
 .admin-storage-config.json
