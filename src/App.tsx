@@ -12,6 +12,7 @@ import ProjectDetailModal from './components/ProjectDetailModal';
 import AdminPage from './components/admin/AdminPage';
 import { DataProvider, useData } from './context/DataContext';
 import { ServiceItem, ProjectItem, ServiceCategory } from './types';
+import { Analytics } from '@vercel/analytics/react';
 
 function PublicWebsite() {
   // Modal states
@@ -75,6 +76,7 @@ function PublicWebsite() {
         onClose={() => setSelectedProjectForModal(null)}
         onInquire={handleSelectServiceForContact}
       />
+      <Analytics />
     </div>
   );
 }
