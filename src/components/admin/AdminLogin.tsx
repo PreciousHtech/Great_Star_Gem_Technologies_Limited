@@ -52,19 +52,38 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
     e.preventDefault();
     setError(null);
     setRecoverySuccess(null);
+
+    if (!navigator.onLine) {
+      setError('No internet connection. Please check your data or Wi-Fi and try again.');
+      return;
+    }
     setIsLoading(true);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     try {
-      const res = await adminLogin(username, password);
-      setIsLoading(false);
+      const res = await Promise.race([adminLogin(username, password),
+        new Promise<never>((_, reject) => { timeoutId = setTimeout(() => reject(new Error('TIMEOUT')), 15000);
+      }),
+    ]);
+
+
       if (res.success) {
         onSuccess();
       } else {
         setError(res.message || 'Invalid administrator credentials. Please check your username and password.');
       }
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.message === 'TIMEOUT') {
+      setError('The connection is too slow and the request timed out. Check your network and try again.');
+    } else if (!navigator.onLine || err instanceof TypeError) {
+      // fetch throws TypeError when the network is unreachable
+      setError('Network error. Unable to reach the server. Check your data or Wi-Fi and try again.');
+    } else {
+      setError('Something went wrong while signing in. Please try again.');
+    }
+    } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
-      setError('An error occurred while connecting to the authentication service.');
     }
   };
 
